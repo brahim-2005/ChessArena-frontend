@@ -1,0 +1,105 @@
+import { fireEvent, render, screen } from '@testing-library/react';
+import React from 'react';
+import ChessBoard from '../src/components/ChessBoard';
+import { GameEngine } from '../src/lib/chess/game';
+
+jest.mock('react-chessboard', () => {
+  const React = require('react') as typeof import('react');
+
+  return {
+    Chessboard: ({ options }: {
+      options: {
+        onSquareClick?: (args: { piece: { pieceType: string } | null; square: string }) => void;
+        position: string;
+      };
+    }) => {
+      const piecesBySquare: Record<string, { pieceType: string }> = {
+        e2: { pieceType: 'wP' },
+        e7: { pieceType: 'bP' },
+        a7: { pieceType: 'wP' },
+      };
+
+      return React.createElement(
+        'div',
+        { 'data-testid': 'board', 'data-position': options.position },
+        ...['e2', 'e4', 'e7', 'e5', 'a7', 'a8'].map((square) => React.createElement(
+          'button',
+          {
+            key: square,
+            type: 'button',
+            onClick: () => options.onSquareClick?.({
+              piece: piecesBySquare[square] ?? null,
+              square,
+            }),
+          },
+          square
+        ))
+      );
+    },
+  };
+});
+
+describe('ChessBoard interactions', () => {
+  it('lets both local players make alternating legal moves', () => {
+    const engine = new GameEngine();
+    const onMove = jest.fn();
+    render(React.createElement(ChessBoard, {
+      engine,
+      onMove,
+      onReset: jest.fn(),
+      isWhitePlayer: true,
+      isHotSeat: true,
+    }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'e2' }));
+    fireEvent.click(screen.getByRole('button', { name: 'e4' }));
+    fireEvent.click(screen.getByRole('button', { name: 'e7' }));
+    fireEvent.click(screen.getByRole('button', { name: 'e5' }));
+
+    expect(engine.moveHistory.map((move) => move.move)).toEqual(['e4', 'e5']);
+    expect(onMove.mock.calls.map(([move]) => move)).toEqual(['e2e4', 'e7e5']);
+  });
+
+  it('presents a promotion choice and completes the selected promotion', () => {
+    const engine = new GameEngine('7k/P7/8/8/8/8/8/7K w - - 0 1');
+    const onMove = jest.fn();
+    render(React.createElement(ChessBoard, {
+      engine,
+      onMove,
+      onReset: jest.fn(),
+      isWhitePlayer: true,
+    }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'a7' }));
+    fireEvent.click(screen.getByRole('button', { name: 'a8' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Promote to knight' }));
+
+    expect(engine.getPieceAt('a8')).toEqual({ type: 'n', color: 'w' });
+    expect(onMove).toHaveBeenCalledWith('a7a8n');
+  });
+
+  it('undoes both plies for a bot game and resets the board', () => {
+    const engine = new GameEngine();
+    engine.moveFromSquares('e2', 'e4');
+    engine.moveFromSquares('e7', 'e5');
+    const onPositionChange = jest.fn();
+    const onReset = jest.fn();
+    render(React.createElement(ChessBoard, {
+      engine,
+      onMove: jest.fn(),
+      onPositionChange,
+      onReset,
+      isWhitePlayer: true,
+      undoPlies: 2,
+    }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Undo move' }));
+    expect(engine.moveHistory).toHaveLength(0);
+    expect(onPositionChange).toHaveBeenCalledTimes(1);
+
+    engine.moveFromSquares('e2', 'e4');
+    fireEvent.click(screen.getByRole('button', { name: 'Reset Board' }));
+    expect(engine.moveHistory).toHaveLength(0);
+    expect(onReset).toHaveBeenCalledTimes(1);
+  });
+});
