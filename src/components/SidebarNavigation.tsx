@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n/context';
+import { isLanguage } from '@/lib/i18n/translations';
 import { cn } from '@/lib/utils';
 import {
   Home,
@@ -74,7 +75,10 @@ export default function SidebarNavigation() {
           </span>
           <select
             value={language}
-            onChange={(e) => setLanguage(e.target.value as any)}
+            onChange={(event) => {
+              const selectedLanguage = event.currentTarget.value;
+              if (isLanguage(selectedLanguage)) setLanguage(selectedLanguage);
+            }}
             className="bg-background text-text-primary text-xs font-semibold rounded-lg px-2 py-1 border border-text-secondary/20 focus:outline-none focus:border-accent"
           >
             <option value="en">English</option>

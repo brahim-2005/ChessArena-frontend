@@ -1,6 +1,7 @@
 'use client';
 
 import { useI18n } from '@/lib/i18n/context';
+import { isLanguage } from '@/lib/i18n/translations';
 import { Globe, ShieldCheck, Volume2, Monitor } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -29,7 +30,10 @@ export default function SettingsPage() {
             </label>
             <select
               value={language}
-              onChange={(e) => setLanguage(e.target.value as any)}
+              onChange={(event) => {
+                const selectedLanguage = event.currentTarget.value;
+                if (isLanguage(selectedLanguage)) setLanguage(selectedLanguage);
+              }}
               className="w-full rounded-xl border border-text-secondary/20 bg-background-tertiary px-4 py-3 text-text-primary font-semibold"
             >
               <option value="en">English (LTR)</option>

@@ -372,6 +372,12 @@ export const translations = {
   },
 };
 
-export function getTranslation(lang: Language, key: keyof typeof translations['en']) {
+export type TranslationKey = keyof typeof translations['en'];
+
+export function isLanguage(value: string | null): value is Language {
+  return value === 'en' || value === 'fr' || value === 'ar';
+}
+
+export function getTranslation(lang: Language, key: TranslationKey) {
   return translations[lang]?.[key] || translations['en'][key] || key;
 }
