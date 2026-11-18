@@ -4,83 +4,17 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { BookOpen, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
-
-interface Lesson {
-  id: string;
-  title: string;
-  category: string;
-  difficulty: string;
-  duration: string;
-  completed: boolean;
-  description: string;
-}
-
-const LESSONS: Lesson[] = [
-  {
-    id: '1',
-    title: 'How the Chess Pieces Move',
-    category: 'Chess Fundamentals',
-    difficulty: 'Beginner',
-    duration: '10 min',
-    completed: true,
-    description: 'Learn how every piece on the board moves, captures, and controls space.',
-  },
-  {
-    id: '2',
-    title: 'The Golden Rules of the Opening',
-    category: 'Opening Principles',
-    difficulty: 'Beginner',
-    duration: '12 min',
-    completed: true,
-    description: 'Control the center, develop your minor pieces quickly, and keep your king safe.',
-  },
-  {
-    id: '3',
-    title: 'Basic Checkmate Patterns (Scholar\'s Mate & Rook Mates)',
-    category: 'Checkmate Patterns',
-    difficulty: 'Elementary',
-    duration: '15 min',
-    completed: false,
-    description: 'Master the fundamental mating nets every chess player must know.',
-  },
-  {
-    id: '4',
-    title: 'Tactical Motifs: Forks, Pins, and Skewers',
-    category: 'Tactical Patterns',
-    difficulty: 'Intermediate',
-    duration: '20 min',
-    completed: false,
-    description: 'Spot double attacks and win material by exploiting undefended pieces.',
-  },
-  {
-    id: '5',
-    title: 'Positional Strategy & Pawn Structures',
-    category: 'Positional Strategy',
-    difficulty: 'Advanced',
-    duration: '25 min',
-    completed: false,
-    description: 'Understand weak squares, open files, outpost knights, and pawn chains.',
-  },
-  {
-    id: '6',
-    title: 'King and Pawn Endgames',
-    category: 'Endgame',
-    difficulty: 'Expert',
-    duration: '30 min',
-    completed: false,
-    description: 'Master opposition, triangulation, and winning king and pawn endings.',
-  },
-];
+import { getLessons, LESSON_CATEGORIES } from '@/lib/learning/lessons';
 
 export default function LearnAcademyPage() {
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const { t, tr } = useI18n();
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const { language, t } = useI18n();
 
-  const categories = ['All', 'Chess Fundamentals', 'Opening Principles', 'Checkmate Patterns', 'Tactical Patterns', 'Positional Strategy', 'Endgame'];
+  const lessons = getLessons(language);
 
-  const filteredLessons = selectedCategory === 'All'
-    ? LESSONS
-    : LESSONS.filter(l => l.category === selectedCategory);
+  const filteredLessons = selectedCategory === 'all'
+    ? lessons
+    : lessons.filter((lesson) => lesson.categoryId === selectedCategory);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 text-text-primary">
@@ -101,24 +35,24 @@ export default function LearnAcademyPage() {
           </div>
           <div>
             <p className="text-xs text-text-secondary">{t('learningProgress')}</p>
-            <p className="font-semibold text-text-primary">2 / 6 {tr(t('completed').toLowerCase())}</p>
+            <p className="font-semibold text-text-primary">2 / 6 {t('completed')}</p>
           </div>
         </div>
       </header>
 
       {/* Category Filter */}
       <div className="flex overflow-x-auto gap-2 pb-4 mb-8 no-scrollbar">
-        {categories.map((cat) => (
+        {LESSON_CATEGORIES.map((category) => (
           <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
+            key={category.id}
+            onClick={() => setSelectedCategory(category.id)}
             className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${
-              selectedCategory === cat
+              selectedCategory === category.id
                 ? 'bg-accent text-white shadow-md shadow-accent/20'
                 : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary hover:text-text-primary border border-text-secondary/10'
             }`}
           >
-            {tr(cat)}
+            {category.label[language]}
           </button>
         ))}
       </div>
@@ -133,15 +67,15 @@ export default function LearnAcademyPage() {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <span className="text-xs px-2.5 py-1 rounded-full bg-background-tertiary text-text-secondary border border-text-secondary/10">
-                  {tr(lesson.difficulty)}
+                  {lesson.difficulty}
                 </span>
                 <span className="text-xs text-text-secondary font-mono">{lesson.duration}</span>
               </div>
               <h3 className="text-lg font-bold text-text-primary mb-2 group-hover:text-accent transition-colors">
-                {tr(lesson.title)}
+                {lesson.title}
               </h3>
               <p className="text-text-secondary text-sm mb-6 line-clamp-2">
-                {tr(lesson.description)}
+                {lesson.description}
               </p>
             </div>
 

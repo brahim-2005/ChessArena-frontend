@@ -10,6 +10,12 @@ describe('translateText', () => {
     expect(translateText('ar', 'Club “Rabat Knights” created.')).toBe('تم إنشاء النادي «Rabat Knights».');
   });
 
+  it('translates French phrases and dynamic notices', () => {
+    expect(translateText('fr', 'Learn')).toBe('Apprendre');
+    expect(translateText('fr', 'Pro Chess Platform')).toBe('Plateforme d’échecs professionnelle');
+    expect(translateText('fr', 'Club “Rabat Knights” created.')).toBe('Le club « Rabat Knights » a été créé.');
+  });
+
   it('keeps English copy unchanged', () => {
     expect(translateText('en', 'Welcome to')).toBe('Welcome to');
   });
