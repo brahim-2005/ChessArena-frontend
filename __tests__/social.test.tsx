@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import SocialPage from '../src/app/social/page';
 import { supabase } from '../src/lib/supabase/client';
+import { I18nProvider } from '../src/lib/i18n/context';
 
 jest.mock('../src/lib/auth', () => ({
   useAuth: () => ({ user: { id: 'user-1' } }),
@@ -59,7 +60,7 @@ describe('Community friend chat', () => {
   });
 
   it('lets a player send a message containing an emoji to an accepted friend', async () => {
-    render(<SocialPage />);
+    render(<I18nProvider><SocialPage /></I18nProvider>);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Message' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Write a message' }), {

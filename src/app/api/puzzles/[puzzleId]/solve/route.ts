@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isLegalPuzzleSolution } from '@/lib/chess/puzzleValidation';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient, SupabaseAdminConfigurationError } from '@/lib/supabase/admin';
 import { createServerClient } from '@/lib/supabase/server';
 
 type RouteContext = { params: Promise<{ puzzleId: string }> };
@@ -103,6 +103,11 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Puzzle solve request failed:', error);
+    if (error instanceof SupabaseAdminConfigurationError) {
+      return NextResponse.json({
+        error: 'Puzzle progress saving is not configured. Add SUPABASE_SERVICE_KEY as a private Vercel environment variable.',
+      }, { status: 503 });
+    }
     return NextResponse.json({ error: 'Unable to save puzzle progress' }, { status: 500 });
   }
 }

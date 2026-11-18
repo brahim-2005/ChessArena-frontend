@@ -43,8 +43,10 @@ export default function PuzzlesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadPuzzles = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     if (!supabase) {
-      setError('Puzzle data is unavailable because the database is not configured.');
+      setError('Puzzle data could not be loaded because the database is not configured.');
       setLoading(false);
       return;
     }
@@ -220,11 +222,11 @@ export default function PuzzlesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl p-4">
+    <div className="mx-auto max-w-7xl p-2 sm:p-4">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary">{tr('Chess Puzzles')}</h1>
-          <p className="mt-1 text-text-secondary">{tr('Solve curated positions from the puzzle database.')}</p>
+          <h1 className="text-2xl font-bold text-text-primary sm:text-3xl">{tr('Chess Puzzles')}</h1>
+          <p className="mt-1 text-sm text-text-secondary sm:text-base">{tr('Solve curated positions from the puzzle database.')}</p>
         </div>
         <p className="text-sm text-text-secondary">{tr('Solved this session:')} <strong className="text-accent">{solvedThisSession}</strong></p>
       </header>
@@ -240,16 +242,28 @@ export default function PuzzlesPage() {
       )}
 
       {!currentPuzzle || !engine ? (
-        <div className="rounded-xl bg-background-secondary p-8 text-center">
+        <div className="rounded-xl bg-background-secondary p-5 text-center sm:p-8">
           <p className="text-text-secondary">
             {tr(error ? 'Puzzle data could not be loaded.' : 'No puzzles are available yet.')}
           </p>
+          {!error && (
+            <p className="mt-2 text-sm text-text-secondary">
+              {tr('Run sql/fix_matchmaking_and_seed_puzzles.sql in the Supabase SQL Editor to load the puzzle set.')}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={() => void loadPuzzles()}
+            className="mt-4 rounded-lg bg-accent px-4 py-2 font-semibold text-white hover:bg-accent-hover"
+          >
+            {tr('Retry')}
+          </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <section className="rounded-xl bg-background-secondary p-4 lg:col-span-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
+          <section className="min-w-0 rounded-xl bg-background-secondary p-2 sm:p-4 lg:col-span-2">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-lg font-semibold text-text-primary">
+              <h2 className="text-base font-semibold text-text-primary sm:text-lg">
                 {currentPuzzle.category || tr('Puzzle')} · {currentPuzzle.difficulty || tr('Unrated difficulty')}
               </h2>
               <span className="text-sm text-text-secondary">{tr('Rating')}: {currentPuzzle.rating}</span>
@@ -262,11 +276,14 @@ export default function PuzzlesPage() {
                 onReset={handleReset}
                 isWhitePlayer={currentPuzzle.fen.split(' ')[1] === 'w'}
                 initialOrientation={currentPuzzle.fen.split(' ')[1] === 'w' ? 'white' : 'black'}
+                allowReset={false}
                 allowUndo={false}
+                showMoveHistory={false}
+                showPlayerInfo={false}
                 isInputEnabled={!isCompleted && !isSubmitting}
               />
             </div>
-            <div className="mt-4 flex flex-wrap justify-center gap-3">
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-center sm:gap-3">
               <button onClick={handleReset} className="rounded-lg border border-text-secondary/20 px-4 py-2 text-text-primary">
                 {tr('Reset puzzle')}
               </button>
@@ -276,7 +293,7 @@ export default function PuzzlesPage() {
               <button
                 onClick={handleNextPuzzle}
                 disabled={!isCompleted || currentPuzzleIndex >= puzzles.length - 1}
-                className="rounded-lg bg-accent px-4 py-2 font-semibold text-white disabled:opacity-50"
+                className="col-span-2 rounded-lg bg-accent px-4 py-2 font-semibold text-white disabled:opacity-50 sm:col-span-1"
               >
                 {tr('Next puzzle')}
               </button>
@@ -290,7 +307,7 @@ export default function PuzzlesPage() {
             )}
           </section>
 
-          <aside className="rounded-xl bg-background-secondary p-6">
+          <aside className="rounded-xl bg-background-secondary p-4 sm:p-6">
             <h2 className="mb-4 text-xl font-bold text-text-primary">{tr('Puzzle details')}</h2>
             <dl className="space-y-3 text-sm">
               <div className="flex justify-between border-b border-text-secondary/10 pb-2">

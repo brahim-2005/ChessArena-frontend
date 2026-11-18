@@ -64,6 +64,13 @@ describe('GameEngine', () => {
       expect(isLegalPuzzleSolution(startingPosition, ['e4', 'e5', 'Nf3', 'Nc6'])).toBe(true);
     });
 
+    it.each([
+      { fen: '7k/8/5KQ1/8/8/8/8/8 w - - 0 1', moves: ['Qg7#'] },
+      { fen: '6k1/5ppp/8/8/8/5Q2/5PPP/6K1 w - - 0 1', moves: ['Qa8#'] },
+    ])('accepts the seeded mate-in-one puzzle solution', ({ fen, moves }) => {
+      expect(isLegalPuzzleSolution(fen, moves)).toBe(true);
+    });
+
     it('rejects an illegal sequence and empty solutions', () => {
       expect(isLegalPuzzleSolution(startingPosition, ['e4', 'e5', 'e5'])).toBe(false);
       expect(isLegalPuzzleSolution(startingPosition, [])).toBe(false);

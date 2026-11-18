@@ -4,7 +4,7 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { GameEngine } from '@/lib/chess/game';
 import { formatTime } from '@/lib/utils';
-import { RotateCcw, Undo2, ArrowLeftRight, Flag, MessageSquare } from 'lucide-react';
+import { RotateCcw, Undo2, ArrowLeftRight } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
 
 interface ChessBoardProps {
@@ -17,6 +17,8 @@ interface ChessBoardProps {
   initialOrientation?: 'white' | 'black';
   allowReset?: boolean;
   allowUndo?: boolean;
+  showMoveHistory?: boolean;
+  showPlayerInfo?: boolean;
   undoPlies?: number;
   isInputEnabled?: boolean;
   isHotSeat?: boolean;
@@ -37,6 +39,8 @@ export default function ChessBoard({
   initialOrientation = 'white',
   allowReset = true,
   allowUndo = true,
+  showMoveHistory = true,
+  showPlayerInfo = true,
   undoPlies = 1,
   isInputEnabled = true,
   isHotSeat = false,
@@ -170,27 +174,29 @@ export default function ChessBoard({
   const bottomPlayerTime = orientation === 'white' ? whiteTime : blackTime;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start w-full max-w-6xl mx-auto">
+    <div className={`grid grid-cols-1 ${showMoveHistory ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6 items-start w-full max-w-6xl mx-auto`}>
       {/* Main Chessboard Column */}
-      <div className="lg:col-span-2 flex flex-col items-center bg-background-secondary p-6 rounded-2xl border border-text-secondary/15 shadow-card">
+      <div className={`${showMoveHistory ? 'lg:col-span-2' : ''} flex flex-col items-center bg-background-secondary p-3 sm:p-6 rounded-2xl border border-text-secondary/15 shadow-card`}>
 
         {/* Opponent Info Header */}
-        <div className="w-full flex items-center justify-between mb-3 bg-background-tertiary px-4 py-2.5 rounded-xl border border-text-secondary/10">
-          <div className="flex items-center gap-x-3">
-            <div className="w-9 h-9 rounded-full bg-accent/20 text-accent font-bold flex items-center justify-center text-sm">
-              {topPlayerName.charAt(0).toUpperCase()}
+        {showPlayerInfo && (
+          <div className="w-full flex items-center justify-between mb-3 bg-background-tertiary px-4 py-2.5 rounded-xl border border-text-secondary/10">
+            <div className="flex items-center gap-x-3">
+              <div className="w-9 h-9 rounded-full bg-accent/20 text-accent font-bold flex items-center justify-center text-sm">
+                {topPlayerName.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-text-primary">{topPlayerName}</p>
+                <p className="text-xs text-text-secondary">{tr('Rating')}: {topPlayerRating}</p>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold text-sm text-text-primary">{topPlayerName}</p>
-              <p className="text-xs text-text-secondary">{tr('Rating')}: {topPlayerRating}</p>
-            </div>
+            {topPlayerTime !== undefined && (
+              <div className="bg-background px-3 py-1 rounded-lg border border-text-secondary/20 font-mono font-bold text-lg text-text-primary">
+                {formatTime(topPlayerTime)}
+              </div>
+            )}
           </div>
-          {topPlayerTime !== undefined && (
-            <div className="bg-background px-3 py-1 rounded-lg border border-text-secondary/20 font-mono font-bold text-lg text-text-primary">
-              {formatTime(topPlayerTime)}
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Proportional Chessboard Container */}
         <div dir="ltr" className="w-full max-w-[500px] aspect-square relative shadow-2xl rounded-xl overflow-hidden border-2 border-text-secondary/20">
@@ -218,22 +224,24 @@ export default function ChessBoard({
         </div>
 
         {/* Player Info Footer */}
-        <div className="w-full flex items-center justify-between mt-3 bg-background-tertiary px-4 py-2.5 rounded-xl border border-text-secondary/10">
-          <div className="flex items-center gap-x-3">
-            <div className="w-9 h-9 rounded-full bg-accent text-white font-bold flex items-center justify-center text-sm shadow-md shadow-accent/30">
-              {bottomPlayerName.charAt(0).toUpperCase()}
+        {showPlayerInfo && (
+          <div className="w-full flex items-center justify-between mt-3 bg-background-tertiary px-4 py-2.5 rounded-xl border border-text-secondary/10">
+            <div className="flex items-center gap-x-3">
+              <div className="w-9 h-9 rounded-full bg-accent text-white font-bold flex items-center justify-center text-sm shadow-md shadow-accent/30">
+                {bottomPlayerName.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-text-primary">{bottomPlayerName}</p>
+                <p className="text-xs text-text-secondary">{tr('Rating')}: {bottomPlayerRating}</p>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold text-sm text-text-primary">{bottomPlayerName}</p>
-              <p className="text-xs text-text-secondary">{tr('Rating')}: {bottomPlayerRating}</p>
-            </div>
+            {bottomPlayerTime !== undefined && (
+              <div className="bg-background px-3 py-1 rounded-lg border border-text-secondary/20 font-mono font-bold text-lg text-text-primary">
+                {formatTime(bottomPlayerTime)}
+              </div>
+            )}
           </div>
-          {bottomPlayerTime !== undefined && (
-            <div className="bg-background px-3 py-1 rounded-lg border border-text-secondary/20 font-mono font-bold text-lg text-text-primary">
-              {formatTime(bottomPlayerTime)}
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Check & Game Over Alerts */}
         {check && !gameOver && (
@@ -288,58 +296,60 @@ export default function ChessBoard({
       </div>
 
       {/* Right Sidebar: Move History & Controls */}
-      <div className="bg-background-secondary rounded-2xl p-6 border border-text-secondary/15 flex flex-col justify-between h-full min-h-[520px] shadow-card">
-        <div>
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <span>{tr('Move History')}</span>
-          </h2>
-          {moveHistory.length === 0 ? (
-            <p className="text-sm text-text-secondary italic">{tr('No moves played yet.')}</p>
-          ) : (
-            <ol className="grid grid-cols-2 gap-x-4 gap-y-2 overflow-y-auto max-h-[320px] font-mono text-sm pe-1">
-              {moveHistory.map((move, index) => (
-                <li key={`${move.index}-${move.move}`} className="flex items-center gap-2 bg-background-tertiary px-3 py-1.5 rounded-lg border border-text-secondary/10">
-                  <span className="text-text-secondary text-xs">{index % 2 === 0 ? `${Math.floor(index / 2) + 1}.` : ''}</span>
-                  <span className="text-text-primary font-semibold">{move.move}</span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
+      {showMoveHistory && (
+        <div className="bg-background-secondary rounded-2xl p-4 sm:p-6 border border-text-secondary/15 flex flex-col justify-between h-full min-h-[320px] lg:min-h-[520px] shadow-card">
+          <div>
+            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+              <span>{tr('Move History')}</span>
+            </h2>
+            {moveHistory.length === 0 ? (
+              <p className="text-sm text-text-secondary italic">{tr('No moves played yet.')}</p>
+            ) : (
+              <ol className="grid grid-cols-2 gap-x-4 gap-y-2 overflow-y-auto max-h-[320px] font-mono text-sm pe-1">
+                {moveHistory.map((move, index) => (
+                  <li key={`${move.index}-${move.move}`} className="flex items-center gap-2 bg-background-tertiary px-3 py-1.5 rounded-lg border border-text-secondary/10">
+                    <span className="text-text-secondary text-xs">{index % 2 === 0 ? `${Math.floor(index / 2) + 1}.` : ''}</span>
+                    <span className="text-text-primary font-semibold">{move.move}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
 
-        {/* Action Controls */}
-        <div className="pt-4 border-t border-text-secondary/15 space-y-2 mt-4">
-          <div className="grid grid-cols-2 gap-2">
-            {allowUndo && (
+          {/* Action Controls */}
+          <div className="pt-4 border-t border-text-secondary/15 space-y-2 mt-4">
+            <div className="grid grid-cols-2 gap-2">
+              {allowUndo && (
+                <button
+                  onClick={handleUndo}
+                  disabled={moveHistory.length === 0}
+                  aria-label={tr('Undo move')}
+                  className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-background-tertiary hover:bg-background text-text-primary text-xs font-semibold rounded-xl border border-text-secondary/20 transition-colors disabled:opacity-50"
+                >
+                  <Undo2 className="w-4 h-4 text-accent" />
+                  <span>{tr('Undo')}</span>
+                </button>
+              )}
               <button
-                onClick={handleUndo}
-                disabled={moveHistory.length === 0}
-                aria-label={tr('Undo move')}
-                className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-background-tertiary hover:bg-background text-text-primary text-xs font-semibold rounded-xl border border-text-secondary/20 transition-colors disabled:opacity-50"
+                onClick={() => setOrientation(o => o === 'white' ? 'black' : 'white')}
+                className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-background-tertiary hover:bg-background text-text-primary text-xs font-semibold rounded-xl border border-text-secondary/20 transition-colors"
               >
-                <Undo2 className="w-4 h-4 text-accent" />
-                <span>{tr('Undo')}</span>
+                <ArrowLeftRight className="w-4 h-4 text-accent" />
+                <span>{tr('Flip')}</span>
+              </button>
+            </div>
+            {allowReset && (
+              <button
+                onClick={handleReset}
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-background-tertiary hover:bg-background text-text-primary text-xs font-semibold rounded-xl border border-text-secondary/20 transition-colors"
+              >
+                <RotateCcw className="w-4 h-4 text-accent" />
+                <span>{tr('Reset Board')}</span>
               </button>
             )}
-            <button
-              onClick={() => setOrientation(o => o === 'white' ? 'black' : 'white')}
-              className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-background-tertiary hover:bg-background text-text-primary text-xs font-semibold rounded-xl border border-text-secondary/20 transition-colors"
-            >
-              <ArrowLeftRight className="w-4 h-4 text-accent" />
-              <span>{tr('Flip')}</span>
-            </button>
           </div>
-          {allowReset && (
-            <button
-              onClick={handleReset}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-background-tertiary hover:bg-background text-text-primary text-xs font-semibold rounded-xl border border-text-secondary/20 transition-colors"
-            >
-              <RotateCcw className="w-4 h-4 text-accent" />
-              <span>{tr('Reset Board')}</span>
-            </button>
-          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

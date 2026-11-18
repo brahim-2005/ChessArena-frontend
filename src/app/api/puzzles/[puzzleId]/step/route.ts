@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isLegalPuzzleSolution } from '@/lib/chess/puzzleValidation';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient, SupabaseAdminConfigurationError } from '@/lib/supabase/admin';
 
 type RouteContext = { params: Promise<{ puzzleId: string }> };
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -87,6 +87,11 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     });
   } catch (error) {
     console.error('Puzzle step request failed:', error);
+    if (error instanceof SupabaseAdminConfigurationError) {
+      return NextResponse.json({
+        error: 'Puzzle move verification is not configured. Add SUPABASE_SERVICE_KEY as a private Vercel environment variable.',
+      }, { status: 503 });
+    }
     return NextResponse.json({ error: 'Unable to process puzzle move' }, { status: 500 });
   }
 }

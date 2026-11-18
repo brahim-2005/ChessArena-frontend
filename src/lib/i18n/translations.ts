@@ -15,6 +15,9 @@ export const translations = {
     leaderboard: 'Leaderboard',
     profile: 'Profile',
     settings: 'Settings',
+    openMenu: 'Open menu',
+    closeMenu: 'Close menu',
+    siteNavigation: 'Site navigation',
 
     // Auth & User
     signIn: 'Sign In',
@@ -146,6 +149,9 @@ export const translations = {
     leaderboard: 'Classement',
     profile: 'Profil',
     settings: 'Paramètres',
+    openMenu: 'Ouvrir le menu',
+    closeMenu: 'Fermer le menu',
+    siteNavigation: 'Navigation du site',
 
     // Auth & User
     signIn: 'Se connecter',
@@ -277,6 +283,9 @@ export const translations = {
     leaderboard: 'لوحة الشرف',
     profile: 'الملف الشخصي',
     settings: 'الإعدادات',
+    openMenu: 'فتح القائمة',
+    closeMenu: 'إغلاق القائمة',
+    siteNavigation: 'التنقل في الموقع',
 
     // Auth & User
     signIn: 'تسجيل الدخول',
@@ -598,6 +607,9 @@ const arabicText: Record<string, string> = {
   'Rated': 'مصنفة',
   'Invite by username': 'ادعُ لاعباً باسم المستخدم',
   'Puzzle data could not be loaded because the database is not configured.': 'تعذّر تحميل الألغاز لأن قاعدة البيانات غير مهيأة.',
+  'Run sql/fix_matchmaking_and_seed_puzzles.sql in the Supabase SQL Editor to load the puzzle set.': 'لتجهيز الألغاز، شغّل sql/fix_matchmaking_and_seed_puzzles.sql في محرر SQL في Supabase.',
+  'Puzzle move verification is not configured. Add SUPABASE_SERVICE_KEY as a private Vercel environment variable.': 'التحقق من نقلات الألغاز غير مهيأ. أضف SUPABASE_SERVICE_KEY كمتغير بيئة خاص في Vercel.',
+  'Puzzle progress saving is not configured. Add SUPABASE_SERVICE_KEY as a private Vercel environment variable.': 'حفظ تقدم الألغاز غير مهيأ. أضف SUPABASE_SERVICE_KEY كمتغير بيئة خاص في Vercel.',
   'Retry': 'إعادة المحاولة',
   'Saving': 'جارٍ الحفظ',
   'Save Changes': 'حفظ التغييرات',
@@ -1211,6 +1223,9 @@ const frenchText: Record<string, string> = {
   'No player insights are available yet.': 'Aucune statistique de joueur disponible pour le moment.',
   'Try again': 'Réessayer',
   'Puzzle data could not be loaded because the database is not configured.': 'Impossible de charger les problèmes : la base de données n’est pas configurée.',
+  'Run sql/fix_matchmaking_and_seed_puzzles.sql in the Supabase SQL Editor to load the puzzle set.': 'Pour ajouter les problèmes, exécutez sql/fix_matchmaking_and_seed_puzzles.sql dans l’éditeur SQL de Supabase.',
+  'Puzzle move verification is not configured. Add SUPABASE_SERVICE_KEY as a private Vercel environment variable.': 'La vérification des coups n’est pas configurée. Ajoutez SUPABASE_SERVICE_KEY comme variable privée dans Vercel.',
+  'Puzzle progress saving is not configured. Add SUPABASE_SERVICE_KEY as a private Vercel environment variable.': 'L’enregistrement de la progression n’est pas configuré. Ajoutez SUPABASE_SERVICE_KEY comme variable privée dans Vercel.',
   'Signing in...': 'Connexion en cours…',
   'Creating Account...': 'Création du compte…',
   'Passwords do not match': 'Les mots de passe ne correspondent pas',

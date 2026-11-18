@@ -2,9 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import ChessBoard from '../src/components/ChessBoard';
 import { GameEngine } from '../src/lib/chess/game';
+import { I18nProvider } from '../src/lib/i18n/context';
 
 jest.mock('react-chessboard', () => {
-  const React = require('react') as typeof import('react');
+  const React = jest.requireActual<typeof import('react')>('react');
 
   return {
     Chessboard: ({ options }: {
@@ -43,13 +44,13 @@ describe('ChessBoard interactions', () => {
   it('lets both local players make alternating legal moves', () => {
     const engine = new GameEngine();
     const onMove = jest.fn();
-    render(React.createElement(ChessBoard, {
+    render(React.createElement(I18nProvider, null, React.createElement(ChessBoard, {
       engine,
       onMove,
       onReset: jest.fn(),
       isWhitePlayer: true,
       isHotSeat: true,
-    }));
+    })));
 
     fireEvent.click(screen.getByRole('button', { name: 'e2' }));
     fireEvent.click(screen.getByRole('button', { name: 'e4' }));
@@ -63,12 +64,12 @@ describe('ChessBoard interactions', () => {
   it('presents a promotion choice and completes the selected promotion', () => {
     const engine = new GameEngine('7k/P7/8/8/8/8/8/7K w - - 0 1');
     const onMove = jest.fn();
-    render(React.createElement(ChessBoard, {
+    render(React.createElement(I18nProvider, null, React.createElement(ChessBoard, {
       engine,
       onMove,
       onReset: jest.fn(),
       isWhitePlayer: true,
-    }));
+    })));
 
     fireEvent.click(screen.getByRole('button', { name: 'a7' }));
     fireEvent.click(screen.getByRole('button', { name: 'a8' }));
@@ -84,14 +85,14 @@ describe('ChessBoard interactions', () => {
     engine.moveFromSquares('e7', 'e5');
     const onPositionChange = jest.fn();
     const onReset = jest.fn();
-    render(React.createElement(ChessBoard, {
+    render(React.createElement(I18nProvider, null, React.createElement(ChessBoard, {
       engine,
       onMove: jest.fn(),
       onPositionChange,
       onReset,
       isWhitePlayer: true,
       undoPlies: 2,
-    }));
+    })));
 
     fireEvent.click(screen.getByRole('button', { name: 'Undo move' }));
     expect(engine.moveHistory).toHaveLength(0);

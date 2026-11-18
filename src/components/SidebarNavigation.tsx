@@ -4,50 +4,17 @@ import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n/context';
 import { isLanguage } from '@/lib/i18n/translations';
 import { cn } from '@/lib/utils';
-import {
-  Home,
-  Play,
-  Puzzle,
-  BookOpen,
-  Trophy,
-  Radio,
-  Video,
-  UsersRound,
-  Award,
-  Users,
-  User,
-  Settings,
-  LogOut,
-  Globe
-} from 'lucide-react';
+import { LogOut, Globe } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { getNavigationItems } from '@/lib/navigation';
 
 export default function SidebarNavigation() {
   const { user, signOut } = useAuth();
   const { language, setLanguage, t, tr } = useI18n();
   const pathname = usePathname();
 
-  const navItems = [
-    { name: t('home') || 'Home', href: '/', icon: Home },
-    { name: t('play'), href: '/play', icon: Play },
-    { name: t('puzzles'), href: '/puzzles', icon: Puzzle },
-    { name: t('learn'), href: '/learn', icon: BookOpen },
-    { name: t('compete') || 'Tournaments', href: '/tournaments', icon: Trophy },
-    { name: t('live'), href: '/live', icon: Radio },
-    { name: t('sessions'), href: '/sessions', icon: Video },
-    { name: t('clubs'), href: '/clubs', icon: UsersRound },
-    { name: t('leaderboard'), href: '/leaderboard', icon: Award },
-    { name: t('community'), href: '/social', icon: Users },
-    {
-      name: t('profile'),
-      href: user
-        ? `/profile/${encodeURIComponent(String(user.user_metadata.username || user.email?.split('@')[0] || ''))}`
-        : '/auth/login',
-      icon: User,
-    },
-    { name: t('settings'), href: '/settings', icon: Settings },
-  ];
+  const navItems = getNavigationItems(t, user);
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-background-secondary border-e border-text-secondary/15 min-h-screen p-4 sticky top-0 overflow-y-auto">
@@ -92,7 +59,7 @@ export default function SidebarNavigation() {
       <nav className="flex-1 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(`${item.href}/`));
           return (
             <Link
               key={item.name}
