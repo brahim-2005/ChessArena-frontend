@@ -6,6 +6,39 @@ import { useParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase/client';
 
+type RatingFormat = 'bullet' | 'blitz' | 'rapid' | 'classical';
+type RatingRange = '7d' | '30d' | '90d' | '6m' | '1y' | 'all';
+
+interface PlayerRating {
+  format: RatingFormat;
+  rating: number;
+  highest_rating: number;
+  lowest_rating: number;
+  games_played: number;
+  wins: number;
+  losses: number;
+  draws: number;
+}
+
+interface RatingHistoryEntry {
+  format: RatingFormat;
+  previous_rating: number;
+  new_rating: number;
+  rating_change: number;
+  result: string;
+  played_at: string;
+}
+
+const RATING_FORMATS: RatingFormat[] = ['bullet', 'blitz', 'rapid', 'classical'];
+const RATING_RANGES: { value: RatingRange; label: string; days: number | null }[] = [
+  { value: '7d', label: '7 days', days: 7 },
+  { value: '30d', label: '30 days', days: 30 },
+  { value: '90d', label: '90 days', days: 90 },
+  { value: '6m', label: '6 months', days: 183 },
+  { value: '1y', label: '1 year', days: 365 },
+  { value: 'all', label: 'All time', days: null },
+];
+
 interface ProfileData {
   id: string;
   username: string;
@@ -43,6 +76,12 @@ export default function ProfilePage() {
   const { user, loading } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [recentGames, setRecentGames] = useState<RecentGame[]>([]);
+  const [playerRatings, setPlayerRatings] = useState<PlayerRating[]>([]);
+  const [ratingHistory, setRatingHistory] = useState<RatingHistoryEntry[]>([]);
+  const [ratingError, setRatingError] = useState<string | null>(null);
+  const [ratingLoading, setRatingLoading] = useState(false);
+  const [selectedFormat, setSelectedFormat] = useState<RatingFormat>('blitz');
+  const [selectedRange, setSelectedRange] = useState<RatingRange>('90d');
   const [activeTab, setActiveTab] = useState('profile');
   const [error, setError] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -57,6 +96,9 @@ export default function ProfilePage() {
     setProfileLoading(true);
     setProfile(null);
     setRecentGames([]);
+    setPlayerRatings([]);
+    setRatingHistory([]);
+    setRatingError(null);
     setError(null);
     try {
       if (!supabase) {
@@ -97,6 +139,32 @@ export default function ProfilePage() {
         joinDate: profile.join_date ? new Date(profile.join_date).toLocaleDateString() : '',
         preferences,
       });
+
+      setRatingLoading(true);
+      try {
+        const { data: ratings, error: ratingsError } = await supabase
+          .from('player_ratings')
+          .select('format, rating, highest_rating, lowest_rating, games_played, wins, losses, draws')
+          .eq('profile_id', profile.id);
+        if (ratingsError) throw ratingsError;
+        if (ratings) setPlayerRatings(ratings as PlayerRating[]);
+
+        const { data: history, error: historyError } = await supabase
+          .from('rating_history')
+          .select('format, previous_rating, new_rating, rating_change, result, played_at')
+          .eq('profile_id', profile.id)
+          .order('played_at', { ascending: true })
+          .limit(500);
+        if (historyError) throw historyError;
+        if (history) setRatingHistory(history as RatingHistoryEntry[]);
+      } catch (ratingLoadError) {
+        console.error('Failed to load player ratings:', ratingLoadError);
+        setRatingError(ratingLoadError instanceof Error
+          ? ratingLoadError.message
+          : 'Unable to load rating history.');
+      } finally {
+        setRatingLoading(false);
+      }
 
       // Fetch recent games
       const { data: games, error: gamesError } = await supabase
@@ -157,6 +225,8 @@ export default function ProfilePage() {
   }
 
   const isOwnProfile = user?.id === profile.id;
+  const selectedRating = playerRatings.find((rating) => rating.format === selectedFormat);
+  const displayRating = selectedRating?.rating ?? profile.rating;
 
   const handleUpdatePreferences = async (newPrefs: ProfilePreferences) => {
     if (!isOwnProfile) {
@@ -213,18 +283,18 @@ export default function ProfilePage() {
 
           {/* Rating and Actions */}
           <div className="flex items-center space-x-3">
-            <div className="text-3xl md:text-4xl font-bold text-accent">{profile.rating}</div>
+            <div className="text-3xl md:text-4xl font-bold text-accent">{displayRating}</div>
             <div className={`px-3 py-1 rounded-full text-sm ${
               user?.user_metadata?.username === profile.username ? 'bg-accent/20 text-accent' :
               'bg-text-secondary/20 text-text-secondary'
             }`}>
-              Rating
+              ChessArena Rating
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <button
             onClick={() => setActiveTab('profile')}
             className={`px-4 py-2 rounded-lg ${
@@ -233,6 +303,15 @@ export default function ProfilePage() {
             }`}
           >
             Profile
+          </button>
+          <button
+            onClick={() => setActiveTab('ratings')}
+            className={`px-4 py-2 rounded-lg ${
+              activeTab === 'ratings' ? 'bg-accent text-white' :
+              'text-text-primary hover:text-accent hover:bg-accent/10 transition-colors'
+            }`}
+          >
+            Ratings
           </button>
           <button
             onClick={() => setActiveTab('games')}
@@ -257,7 +336,18 @@ export default function ProfilePage() {
         </div>
 
         {/* Profile Content */}
-        {activeTab === 'games' && recentGames.length > 0 ? (
+        {activeTab === 'ratings' ? (
+          <PlayerRatingsDashboard
+            ratings={playerRatings}
+            history={ratingHistory}
+            loading={ratingLoading}
+            error={ratingError}
+            format={selectedFormat}
+            range={selectedRange}
+            onFormatChange={setSelectedFormat}
+            onRangeChange={setSelectedRange}
+          />
+        ) : activeTab === 'games' && recentGames.length > 0 ? (
           <RecentGames section={recentGames} />
         ) : (
           <div className="bg-background-secondary rounded-lg p-6">
@@ -319,6 +409,182 @@ export default function ProfilePage() {
           />
         )}
       </div>
+    </div>
+  );
+}
+
+function PlayerRatingsDashboard({
+  ratings,
+  history,
+  loading,
+  error,
+  format,
+  range,
+  onFormatChange,
+  onRangeChange,
+}: {
+  ratings: PlayerRating[];
+  history: RatingHistoryEntry[];
+  loading: boolean;
+  error: string | null;
+  format: RatingFormat;
+  range: RatingRange;
+  onFormatChange: (format: RatingFormat) => void;
+  onRangeChange: (range: RatingRange) => void;
+}) {
+  const rating = ratings.find((entry) => entry.format === format);
+  const currentRating = rating?.rating ?? 200;
+  const now = Date.now();
+  const formatHistory = history.filter((entry) => entry.format === format);
+  const rangeDefinition = RATING_RANGES.find((entry) => entry.value === range);
+  const cutoff = rangeDefinition?.days === null || rangeDefinition?.days === undefined
+    ? null
+    : now - rangeDefinition.days * 24 * 60 * 60 * 1000;
+  const visibleHistory = formatHistory.filter((entry) =>
+    cutoff === null || new Date(entry.played_at).getTime() >= cutoff
+  );
+  const weekChange = formatHistory
+    .filter((entry) => new Date(entry.played_at).getTime() >= now - 7 * 24 * 60 * 60 * 1000)
+    .reduce((total, entry) => total + entry.rating_change, 0);
+  const monthChange = formatHistory
+    .filter((entry) => new Date(entry.played_at).getTime() >= now - 30 * 24 * 60 * 60 * 1000)
+    .reduce((total, entry) => total + entry.rating_change, 0);
+  const ratingsInChart = visibleHistory.map((entry) => entry.new_rating);
+  const minRating = Math.min(...ratingsInChart, currentRating);
+  const maxRating = Math.max(...ratingsInChart, currentRating);
+  const chartSpan = Math.max(1, maxRating - minRating);
+  const chartPoints = visibleHistory.map((entry, index) => {
+    const x = visibleHistory.length === 1 ? 300 : 16 + (index / (visibleHistory.length - 1)) * 568;
+    const y = 164 - ((entry.new_rating - minRating) / chartSpan) * 142;
+    return { entry, x, y };
+  });
+  const chartLine = chartPoints.map((point) => `${point.x},${point.y}`).join(' ');
+
+  return (
+    <section className="space-y-6" aria-labelledby="rating-overview-title">
+      <div className="rounded-2xl border border-text-secondary/15 bg-background-secondary p-5 md:p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 id="rating-overview-title" className="text-xl font-bold text-text-primary">ChessArena Rating</h2>
+            <p className="mt-1 text-sm text-text-secondary">Separate ratings for each time format, based on rated games.</p>
+          </div>
+          <label className="text-sm text-text-secondary">
+            Rating format
+            <select
+              value={format}
+              onChange={(event) => onFormatChange(event.target.value as RatingFormat)}
+              className="ml-2 rounded-lg border border-text-secondary/20 bg-background px-3 py-2 text-text-primary"
+            >
+              {RATING_FORMATS.map((item) => (
+                <option key={item} value={item}>{item[0].toUpperCase() + item.slice(1)}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {error && (
+          <p role="alert" className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
+            Rating data could not be loaded: {error}. Re-run the player intelligence migration in Supabase.
+          </p>
+        )}
+
+        {loading ? (
+          <p role="status" className="mt-6 text-sm text-text-secondary">Loading rating history…</p>
+        ) : (
+          <>
+            <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-5">
+              <RatingStat label={`${format[0].toUpperCase() + format.slice(1)} rating`} value={currentRating} />
+              <RatingStat label="Highest" value={rating?.highest_rating ?? currentRating} />
+              <RatingStat label="Lowest" value={rating?.lowest_rating ?? currentRating} />
+              <RatingStat label="This week" value={`${weekChange > 0 ? '+' : ''}${weekChange}`} />
+              <RatingStat label="This month" value={`${monthChange > 0 ? '+' : ''}${monthChange}`} />
+            </div>
+
+            <div className="mt-7 flex flex-wrap items-center justify-between gap-3">
+              <h3 className="font-semibold text-text-primary">Rating progression</h3>
+              <div className="flex flex-wrap gap-2" aria-label="Rating chart date range">
+                {RATING_RANGES.map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    aria-pressed={range === item.value}
+                    onClick={() => onRangeChange(item.value)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
+                      range === item.value
+                        ? 'bg-accent text-white'
+                        : 'bg-background-tertiary text-text-secondary hover:text-text-primary'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {visibleHistory.length === 0 ? (
+              <p className="mt-4 rounded-xl bg-background p-6 text-center text-sm text-text-secondary">
+                Play rated {format} games to see your real rating history. No historical data is invented.
+              </p>
+            ) : (
+              <div className="mt-4 overflow-hidden rounded-xl bg-background p-3">
+                <svg
+                  viewBox="0 0 600 180"
+                  role="img"
+                  aria-label={`${format} rating history chart`}
+                  className="h-52 w-full"
+                  preserveAspectRatio="none"
+                >
+                  <line x1="12" y1="164" x2="588" y2="164" stroke="currentColor" opacity="0.2" />
+                  <line x1="12" y1="22" x2="588" y2="22" stroke="currentColor" opacity="0.1" />
+                  {chartPoints.length > 1 && (
+                    <polyline
+                      points={chartLine}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      className="text-accent"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  )}
+                  {chartPoints.map(({ entry, x, y }, index) => (
+                    <circle
+                      key={`${entry.played_at}-${index}`}
+                      cx={x}
+                      cy={y}
+                      r="5"
+                      fill="currentColor"
+                      className="text-accent"
+                    >
+                      <title>
+                        {`${new Date(entry.played_at).toLocaleDateString()}: ${entry.new_rating} (${entry.rating_change > 0 ? '+' : ''}${entry.rating_change}), ${entry.result.replace('_', ' ')}`}
+                      </title>
+                    </circle>
+                  ))}
+                  <text x="12" y="178" fill="currentColor" opacity="0.7" fontSize="11">
+                    {new Date(visibleHistory[0].played_at).toLocaleDateString()}
+                  </text>
+                  <text x="588" y="178" textAnchor="end" fill="currentColor" opacity="0.7" fontSize="11">
+                    {new Date(visibleHistory[visibleHistory.length - 1].played_at).toLocaleDateString()}
+                  </text>
+                </svg>
+              </div>
+            )}
+
+            <p className="mt-3 text-xs text-text-secondary">
+              {rating?.games_played ?? 0} rated games · {rating?.wins ?? 0} wins · {rating?.draws ?? 0} draws · {rating?.losses ?? 0} losses
+            </p>
+          </>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function RatingStat({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div className="rounded-xl bg-background p-4">
+      <p className="text-xs text-text-secondary">{label}</p>
+      <p className="mt-1 text-xl font-bold text-text-primary">{value}</p>
     </div>
   );
 }
