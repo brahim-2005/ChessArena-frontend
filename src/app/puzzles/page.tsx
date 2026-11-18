@@ -222,7 +222,7 @@ export default function PuzzlesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl p-2 sm:p-4">
+    <div className="mx-auto max-w-7xl p-0 sm:p-4">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-text-primary sm:text-3xl">{tr('Chess Puzzles')}</h1>
@@ -261,7 +261,7 @@ export default function PuzzlesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
-          <section className="min-w-0 rounded-xl bg-background-secondary p-2 sm:p-4 lg:col-span-2">
+          <section className="min-w-0 rounded-xl bg-background-secondary p-0 sm:p-4 lg:col-span-2">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-base font-semibold text-text-primary sm:text-lg">
                 {currentPuzzle.category || tr('Puzzle')} · {currentPuzzle.difficulty || tr('Unrated difficulty')}

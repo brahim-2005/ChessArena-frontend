@@ -176,7 +176,7 @@ export default function ChessBoard({
   return (
     <div className={`grid grid-cols-1 ${showMoveHistory ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6 items-start w-full max-w-6xl mx-auto`}>
       {/* Main Chessboard Column */}
-      <div className={`${showMoveHistory ? 'lg:col-span-2' : ''} flex flex-col items-center bg-background-secondary p-3 sm:p-6 rounded-2xl border border-text-secondary/15 shadow-card`}>
+      <div className={`${showMoveHistory ? 'lg:col-span-2' : ''} flex flex-col items-center bg-background-secondary p-1 sm:p-6 rounded-2xl border border-text-secondary/15 shadow-card`}>
 
         {/* Opponent Info Header */}
         {showPlayerInfo && (
@@ -199,7 +199,7 @@ export default function ChessBoard({
         )}
 
         {/* Proportional Chessboard Container */}
-        <div dir="ltr" className="w-full max-w-[500px] aspect-square relative shadow-2xl rounded-xl overflow-hidden border-2 border-text-secondary/20">
+        <div dir="ltr" className="w-[calc(100vw-2rem)] max-w-[560px] sm:w-full aspect-square relative shadow-2xl rounded-xl overflow-hidden border-2 border-text-secondary/20">
           <Chessboard
             options={{
               position: fen,
