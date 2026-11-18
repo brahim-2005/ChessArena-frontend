@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { BookOpen, CheckCircle2, ArrowRight } from 'lucide-react';
+import { useI18n } from '@/lib/i18n/context';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,6 +48,7 @@ const LESSON_DATA: Record<string, LessonDetail> = {
 export default function LessonDetailPage({ params }: { params: { lessonId: string } }) {
   const lessonId = params.lessonId || '1';
   const lesson = LESSON_DATA[lessonId] || LESSON_DATA['1'];
+  const { tr } = useI18n();
   const [currentStep, setCurrentStep] = useState(0);
   const [completed, setCompleted] = useState(false);
 
@@ -61,40 +63,40 @@ export default function LessonDetailPage({ params }: { params: { lessonId: strin
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 text-text-primary">
       <Link href="/learn" className="text-sm text-text-secondary hover:text-accent mb-6 inline-block">
-        ← Back to Lessons Library
+        ← {tr('Back to Lessons Library')}
       </Link>
 
       <div className="bg-background-secondary rounded-2xl p-6 md:p-8 border border-text-secondary/15 shadow-card mb-6">
         <div className="flex items-center justify-between mb-4">
           <span className="px-3 py-1 bg-accent/20 text-accent text-xs font-semibold rounded-full border border-accent/30">
-            {lesson.category}
+            {tr(lesson.category)}
           </span>
-          <span className="text-xs text-text-secondary">Step {currentStep + 1} of {lesson.content.length}</span>
+          <span className="text-xs text-text-secondary">{tr('Step')} {currentStep + 1} {tr('of')} {lesson.content.length}</span>
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold mb-4">{lesson.title}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-4">{tr(lesson.title)}</h1>
         <p className="text-lg text-text-primary leading-relaxed bg-background-tertiary p-6 rounded-xl border border-text-secondary/10 mb-6">
-          {lesson.content[currentStep]}
+          {tr(lesson.content[currentStep])}
         </p>
 
         {completed ? (
           <div className="p-6 bg-green-500/10 border border-green-500/30 rounded-xl text-center">
-            <h3 className="text-xl font-bold text-green-300 mb-2">Lesson Completed! 🎉</h3>
-            <p className="text-sm text-text-secondary mb-4">You have successfully finished this lesson and earned XP.</p>
+            <h3 className="text-xl font-bold text-green-300 mb-2">{tr('Lesson Completed! 🎉')}</h3>
+            <p className="text-sm text-text-secondary mb-4">{tr('You have successfully finished this lesson and earned XP.')}</p>
             <Link
               href="/learn"
               className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-xl inline-block transition-colors"
             >
-              Continue Learning
+              {tr('Continue Learning')}
             </Link>
           </div>
         ) : (
           <div className="flex justify-between items-center">
-            <span className="text-xs text-text-secondary">Read and understand the concept to proceed.</span>
+            <span className="text-xs text-text-secondary">{tr('Read and understand the concept to proceed.')}</span>
             <button
               onClick={handleNext}
               className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-xl transition-colors shadow-md shadow-accent/20 flex items-center gap-2"
             >
-              <span>{currentStep === lesson.content.length - 1 ? 'Complete Lesson' : 'Next Step'}</span>
+              <span>{tr(currentStep === lesson.content.length - 1 ? 'Complete Lesson' : 'Next Step')}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

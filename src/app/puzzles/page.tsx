@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth';
 import ChessBoard from '@/components/ChessBoard';
 import { GameEngine } from '@/lib/chess/game';
 import { supabase } from '@/lib/supabase/client';
+import { useI18n } from '@/lib/i18n/context';
 
 interface Puzzle {
   id: string;
@@ -28,6 +29,7 @@ async function savePuzzleProgress(puzzleId: string, moves: string[], failedAttem
 
 export default function PuzzlesPage() {
   const { user } = useAuth();
+  const { tr } = useI18n();
   const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
   const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(0);
   const [engine, setEngine] = useState<GameEngine | null>(null);
@@ -182,8 +184,8 @@ export default function PuzzlesPage() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Unable to load a hint.');
       setFeedback(result.move
-        ? { type: 'correct', message: `Hint: ${result.move}` }
-        : { type: 'incorrect', message: 'No further hint is available.' });
+        ? { type: 'correct', message: `${tr('Hint')}: ${result.move}` }
+        : { type: 'incorrect', message: tr('No further hint is available.') });
     } catch (hintError) {
       console.error('Unable to load puzzle hint:', hintError);
       setError(hintError instanceof Error ? hintError.message : 'Unable to load a hint.');
@@ -214,33 +216,33 @@ export default function PuzzlesPage() {
   };
 
   if (loading) {
-    return <p role="status" className="p-8 text-center text-text-secondary">Loading puzzles…</p>;
+    return <p role="status" className="p-8 text-center text-text-secondary">{tr('Loading puzzles…')}</p>;
   }
 
   return (
     <div className="mx-auto max-w-7xl p-4">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary">Chess Puzzles</h1>
-          <p className="mt-1 text-text-secondary">Solve curated positions from the puzzle database.</p>
+          <h1 className="text-3xl font-bold text-text-primary">{tr('Chess Puzzles')}</h1>
+          <p className="mt-1 text-text-secondary">{tr('Solve curated positions from the puzzle database.')}</p>
         </div>
-        <p className="text-sm text-text-secondary">Solved this session: <strong className="text-accent">{solvedThisSession}</strong></p>
+        <p className="text-sm text-text-secondary">{tr('Solved this session:')} <strong className="text-accent">{solvedThisSession}</strong></p>
       </header>
 
-      {error && <div role="alert" className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-300">{error}</div>}
+      {error && <div role="alert" className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-300">{tr(error)}</div>}
       {user && isCompleted && error && (
         <button
           onClick={() => void handleRetryProgress()}
           className="mb-4 rounded-lg bg-accent px-4 py-2 font-semibold text-white"
         >
-          Retry saving progress
+          {tr('Retry saving progress')}
         </button>
       )}
 
       {!currentPuzzle || !engine ? (
         <div className="rounded-xl bg-background-secondary p-8 text-center">
           <p className="text-text-secondary">
-            {error ? 'Puzzle data could not be loaded.' : 'No puzzles are available yet.'}
+            {tr(error ? 'Puzzle data could not be loaded.' : 'No puzzles are available yet.')}
           </p>
         </div>
       ) : (
@@ -248,9 +250,9 @@ export default function PuzzlesPage() {
           <section className="rounded-xl bg-background-secondary p-4 lg:col-span-2">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-lg font-semibold text-text-primary">
-                {currentPuzzle.category || 'Puzzle'} · {currentPuzzle.difficulty || 'Unrated difficulty'}
+                {currentPuzzle.category || tr('Puzzle')} · {currentPuzzle.difficulty || tr('Unrated difficulty')}
               </h2>
-              <span className="text-sm text-text-secondary">Rating: {currentPuzzle.rating}</span>
+              <span className="text-sm text-text-secondary">{tr('Rating')}: {currentPuzzle.rating}</span>
             </div>
             <div className="flex justify-center">
               <ChessBoard
@@ -266,45 +268,45 @@ export default function PuzzlesPage() {
             </div>
             <div className="mt-4 flex flex-wrap justify-center gap-3">
               <button onClick={handleReset} className="rounded-lg border border-text-secondary/20 px-4 py-2 text-text-primary">
-                Reset puzzle
+                {tr('Reset puzzle')}
               </button>
               <button onClick={() => void handleHint()} disabled={isCompleted || isSubmitting} className="rounded-lg border border-yellow-500/30 px-4 py-2 text-yellow-300 disabled:opacity-50">
-                Hint
+                {tr('Hint')}
               </button>
               <button
                 onClick={handleNextPuzzle}
                 disabled={!isCompleted || currentPuzzleIndex >= puzzles.length - 1}
                 className="rounded-lg bg-accent px-4 py-2 font-semibold text-white disabled:opacity-50"
               >
-                Next puzzle
+                {tr('Next puzzle')}
               </button>
             </div>
             {feedback && (
               <p role="status" className={`mt-4 rounded-lg p-3 text-center ${
                 feedback.type === 'correct' ? 'bg-green-500/10 text-green-300' : 'bg-red-500/10 text-red-300'
               }`}>
-                {feedback.message}
+                {tr(feedback.message)}
               </p>
             )}
           </section>
 
           <aside className="rounded-xl bg-background-secondary p-6">
-            <h2 className="mb-4 text-xl font-bold text-text-primary">Puzzle details</h2>
+            <h2 className="mb-4 text-xl font-bold text-text-primary">{tr('Puzzle details')}</h2>
             <dl className="space-y-3 text-sm">
               <div className="flex justify-between border-b border-text-secondary/10 pb-2">
-                <dt className="text-text-secondary">Rating</dt>
+                <dt className="text-text-secondary">{tr('Rating')}</dt>
                 <dd className="font-bold text-accent">{currentPuzzle.rating}</dd>
               </div>
               <div className="flex justify-between border-b border-text-secondary/10 pb-2">
-                <dt className="text-text-secondary">Category</dt>
-                <dd className="text-text-primary">{currentPuzzle.category || 'Not specified'}</dd>
+                <dt className="text-text-secondary">{tr('Category')}</dt>
+                <dd className="text-text-primary">{currentPuzzle.category || tr('Not specified')}</dd>
               </div>
               <div className="flex justify-between border-b border-text-secondary/10 pb-2">
-                <dt className="text-text-secondary">Difficulty</dt>
-                <dd className="text-text-primary">{currentPuzzle.difficulty || 'Not specified'}</dd>
+                <dt className="text-text-secondary">{tr('Difficulty')}</dt>
+                <dd className="text-text-primary">{currentPuzzle.difficulty || tr('Not specified')}</dd>
               </div>
             </dl>
-            {!user && <p className="mt-4 text-xs text-text-secondary">Sign in to save solved-puzzle progress.</p>}
+            {!user && <p className="mt-4 text-xs text-text-secondary">{tr('Sign in to save solved-puzzle progress.')}</p>}
           </aside>
         </div>
       )}

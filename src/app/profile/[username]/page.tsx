@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase/client';
+import { useI18n } from '@/lib/i18n/context';
 
 type RatingFormat = 'bullet' | 'blitz' | 'rapid' | 'classical';
 type RatingRange = '7d' | '30d' | '90d' | '6m' | '1y' | 'all';
@@ -74,6 +75,7 @@ export default function ProfilePage() {
   const usernameParam = useParams().username;
   const username = Array.isArray(usernameParam) ? usernameParam[0] : usernameParam;
   const { user, loading } = useAuth();
+  const { tr } = useI18n();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [recentGames, setRecentGames] = useState<RecentGame[]>([]);
   const [playerRatings, setPlayerRatings] = useState<PlayerRating[]>([]);
@@ -203,7 +205,7 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-bold text-text-primary mb-4">Profile Loading...</h2>
+          <h2 className="text-xl font-bold text-text-primary mb-4">{tr('Profile Loading...')}</h2>
         </div>
       </div>
     );
@@ -214,10 +216,10 @@ export default function ProfilePage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center p-8">
           <h1 className="text-2xl font-bold text-text-primary mb-4">
-            Profile Not Found
+            {tr('Profile Not Found')}
           </h1>
           <p role={error ? 'alert' : undefined} className={error ? 'text-red-300' : 'text-text-secondary'}>
-            {error || 'The requested profile could not be found.'}
+            {tr(error || 'The requested profile could not be found.')}
           </p>
         </div>
       </div>
@@ -254,13 +256,13 @@ export default function ProfilePage() {
       <div className="max-w-7xl mx-auto p-4">
         {error && (
           <div role="alert" className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-300">
-            {error}
+            {tr(error)}
           </div>
         )}
 
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-x-3">
             {profile.avatarUrl ? (
               <Image
                 src={profile.avatarUrl}
@@ -282,13 +284,13 @@ export default function ProfilePage() {
           </div>
 
           {/* Rating and Actions */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-x-3">
             <div className="text-3xl md:text-4xl font-bold text-accent">{displayRating}</div>
             <div className={`px-3 py-1 rounded-full text-sm ${
               user?.user_metadata?.username === profile.username ? 'bg-accent/20 text-accent' :
               'bg-text-secondary/20 text-text-secondary'
             }`}>
-              ChessArena Rating
+              {tr('ChessArena Rating')}
             </div>
           </div>
         </div>
@@ -302,7 +304,7 @@ export default function ProfilePage() {
               'text-text-primary hover:text-accent hover:bg-accent/10 transition-colors'
             }`}
           >
-            Profile
+            {tr('Profile')}
           </button>
           <button
             onClick={() => setActiveTab('ratings')}
@@ -311,7 +313,7 @@ export default function ProfilePage() {
               'text-text-primary hover:text-accent hover:bg-accent/10 transition-colors'
             }`}
           >
-            Ratings
+            {tr('Ratings')}
           </button>
           <button
             onClick={() => setActiveTab('games')}
@@ -320,7 +322,7 @@ export default function ProfilePage() {
               'text-text-primary hover:text-accent hover:bg-accent/10 transition-colors'
             }`}
           >
-            Games
+            {tr('Games')}
           </button>
           {isOwnProfile && (
             <button
@@ -330,7 +332,7 @@ export default function ProfilePage() {
                 'text-text-primary hover:text-accent hover:bg-accent/10 transition-colors'
               }`}
             >
-              Preferences
+              {tr('Preferences')}
             </button>
           )}
         </div>
@@ -353,11 +355,11 @@ export default function ProfilePage() {
           <div className="bg-background-secondary rounded-lg p-6">
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
-                <h3 className="text-sm font-medium text-text-secondary mb-1">Games Played</h3>
+                <h3 className="text-sm font-medium text-text-secondary mb-1">{tr('Games Played')}</h3>
                 <p className="text-3xl font-bold text-accent">{profile.gamesPlayed}</p>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-text-secondary mb-1">Win Rate</h3>
+                <h3 className="text-sm font-medium text-text-secondary mb-1">{tr('Win Rate')}</h3>
                 <p className="text-3xl font-bold text-green-400">
                   {(profile.wins / Math.max(1, profile.gamesPlayed) * 100).toFixed(1)}%
                 </p>
@@ -366,15 +368,15 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <h3 className="text-sm font-medium text-text-secondary mb-1">Wins</h3>
+                <h3 className="text-sm font-medium text-text-secondary mb-1">{tr('Wins')}</h3>
                 <p className="text-xl text-green-400">{profile.wins}</p>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-text-secondary mb-1">Losses</h3>
+                <h3 className="text-sm font-medium text-text-secondary mb-1">{tr('Losses')}</h3>
                 <p className="text-xl text-red-400">{profile.losses}</p>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-text-secondary mb-1">Draws</h3>
+                <h3 className="text-sm font-medium text-text-secondary mb-1">{tr('Draws')}</h3>
                 <p className="text-xl text-yellow-400">{profile.draws}</p>
               </div>
             </div>
@@ -432,6 +434,7 @@ function PlayerRatingsDashboard({
   onFormatChange: (format: RatingFormat) => void;
   onRangeChange: (range: RatingRange) => void;
 }) {
+  const { language, tr } = useI18n();
   const rating = ratings.find((entry) => entry.format === format);
   const currentRating = rating?.rating ?? 200;
   const now = Date.now();
@@ -465,18 +468,18 @@ function PlayerRatingsDashboard({
       <div className="rounded-2xl border border-text-secondary/15 bg-background-secondary p-5 md:p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h2 id="rating-overview-title" className="text-xl font-bold text-text-primary">ChessArena Rating</h2>
-            <p className="mt-1 text-sm text-text-secondary">Separate ratings for each time format, based on rated games.</p>
+            <h2 id="rating-overview-title" className="text-xl font-bold text-text-primary">{tr('ChessArena Rating')}</h2>
+            <p className="mt-1 text-sm text-text-secondary">{tr('Separate ratings for each time format, based on rated games.')}</p>
           </div>
           <label className="text-sm text-text-secondary">
-            Rating format
+            {tr('Rating format')}
             <select
               value={format}
               onChange={(event) => onFormatChange(event.target.value as RatingFormat)}
-              className="ml-2 rounded-lg border border-text-secondary/20 bg-background px-3 py-2 text-text-primary"
+              className="ms-2 rounded-lg border border-text-secondary/20 bg-background px-3 py-2 text-text-primary"
             >
               {RATING_FORMATS.map((item) => (
-                <option key={item} value={item}>{item[0].toUpperCase() + item.slice(1)}</option>
+                <option key={item} value={item}>{tr(item[0].toUpperCase() + item.slice(1))}</option>
               ))}
             </select>
           </label>
@@ -484,25 +487,25 @@ function PlayerRatingsDashboard({
 
         {error && (
           <p role="alert" className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
-            Rating data could not be loaded: {error}. Re-run the player intelligence migration in Supabase.
+            {tr('Rating data could not be loaded:')} {tr(error)}. {tr('Re-run the player intelligence migration in Supabase.')}
           </p>
         )}
 
         {loading ? (
-          <p role="status" className="mt-6 text-sm text-text-secondary">Loading rating history…</p>
+          <p role="status" className="mt-6 text-sm text-text-secondary">{tr('Loading rating history…')}</p>
         ) : (
           <>
             <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-5">
               <RatingStat label={`${format[0].toUpperCase() + format.slice(1)} rating`} value={currentRating} />
-              <RatingStat label="Highest" value={rating?.highest_rating ?? currentRating} />
-              <RatingStat label="Lowest" value={rating?.lowest_rating ?? currentRating} />
-              <RatingStat label="This week" value={`${weekChange > 0 ? '+' : ''}${weekChange}`} />
-              <RatingStat label="This month" value={`${monthChange > 0 ? '+' : ''}${monthChange}`} />
+              <RatingStat label={tr('Highest')} value={rating?.highest_rating ?? currentRating} />
+              <RatingStat label={tr('Lowest')} value={rating?.lowest_rating ?? currentRating} />
+              <RatingStat label={tr('This week')} value={`${weekChange > 0 ? '+' : ''}${weekChange}`} />
+              <RatingStat label={tr('This month')} value={`${monthChange > 0 ? '+' : ''}${monthChange}`} />
             </div>
 
             <div className="mt-7 flex flex-wrap items-center justify-between gap-3">
-              <h3 className="font-semibold text-text-primary">Rating progression</h3>
-              <div className="flex flex-wrap gap-2" aria-label="Rating chart date range">
+              <h3 className="font-semibold text-text-primary">{tr('Rating progression')}</h3>
+              <div className="flex flex-wrap gap-2" aria-label={tr('Rating chart date range')}>
                 {RATING_RANGES.map((item) => (
                   <button
                     key={item.value}
@@ -515,7 +518,7 @@ function PlayerRatingsDashboard({
                         : 'bg-background-tertiary text-text-secondary hover:text-text-primary'
                     }`}
                   >
-                    {item.label}
+                    {tr(item.label)}
                   </button>
                 ))}
               </div>
@@ -523,14 +526,14 @@ function PlayerRatingsDashboard({
 
             {visibleHistory.length === 0 ? (
               <p className="mt-4 rounded-xl bg-background p-6 text-center text-sm text-text-secondary">
-                Play rated {format} games to see your real rating history. No historical data is invented.
+                {tr('Play rated')} {tr(format[0].toUpperCase() + format.slice(1))} {tr('games to see your real rating history. No historical data is invented.')}
               </p>
             ) : (
               <div className="mt-4 overflow-hidden rounded-xl bg-background p-3">
                 <svg
                   viewBox="0 0 600 180"
                   role="img"
-                  aria-label={`${format} rating history chart`}
+                  aria-label={`${tr(format[0].toUpperCase() + format.slice(1))} ${tr('rating history chart')}`}
                   className="h-52 w-full"
                   preserveAspectRatio="none"
                 >
@@ -556,22 +559,22 @@ function PlayerRatingsDashboard({
                       className="text-accent"
                     >
                       <title>
-                        {`${new Date(entry.played_at).toLocaleDateString()}: ${entry.new_rating} (${entry.rating_change > 0 ? '+' : ''}${entry.rating_change}), ${entry.result.replace('_', ' ')}`}
+                        {`${new Date(entry.played_at).toLocaleDateString(language)}: ${entry.new_rating} (${entry.rating_change > 0 ? '+' : ''}${entry.rating_change}), ${tr(entry.result.replace('_', ' '))}`}
                       </title>
                     </circle>
                   ))}
                   <text x="12" y="178" fill="currentColor" opacity="0.7" fontSize="11">
-                    {new Date(visibleHistory[0].played_at).toLocaleDateString()}
+                    {new Date(visibleHistory[0].played_at).toLocaleDateString(language)}
                   </text>
                   <text x="588" y="178" textAnchor="end" fill="currentColor" opacity="0.7" fontSize="11">
-                    {new Date(visibleHistory[visibleHistory.length - 1].played_at).toLocaleDateString()}
+                    {new Date(visibleHistory[visibleHistory.length - 1].played_at).toLocaleDateString(language)}
                   </text>
                 </svg>
               </div>
             )}
 
             <p className="mt-3 text-xs text-text-secondary">
-              {rating?.games_played ?? 0} rated games · {rating?.wins ?? 0} wins · {rating?.draws ?? 0} draws · {rating?.losses ?? 0} losses
+              {rating?.games_played ?? 0} {tr('rated games')} · {rating?.wins ?? 0} {tr('wins')} · {rating?.draws ?? 0} {tr('draws')} · {rating?.losses ?? 0} {tr('losses')}
             </p>
           </>
         )}
@@ -590,6 +593,8 @@ function RatingStat({ label, value }: { label: string; value: number | string })
 }
 
 function RecentGames({ section }: { section: RecentGame[] }) {
+  const { tr, language } = useI18n();
+
   return (
     <div className="space-y-3">
       {section.map((game, index) => (
@@ -597,24 +602,24 @@ function RecentGames({ section }: { section: RecentGame[] }) {
           key={index}
           className="flex items-center justify-between p-3 rounded-lg bg-background-tertiary hover:bg-accent/5 transition-colors"
         >
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-x-2">
             {game.result ? (
               <span className={`text-sm font-medium ${
                 game.result.includes('white_wins') ? 'text-green-400' :
                 game.result.includes('black_wins') ? 'text-red-400' :
                 'text-yellow-400'
               }`}>
-                {game.result.replace('_', ' ')}
+                {tr(game.result.replace('_', ' '))}
               </span>
             ) : (
-              <span className="text-sm text-text-secondary">In Progress</span>
+              <span className="text-sm text-text-secondary">{tr('In Progress')}</span>
             )}
             <span className="text-xs text-text-secondary">
-              {new Date(game.startedAt).toLocaleDateString()}
+              {new Date(game.startedAt).toLocaleDateString(language)}
             </span>
           </div>
           <span className="text-xs text-text-secondary">
-            {game.endedAt ? new Date(game.endedAt).toLocaleDateString() : 'Ongoing'}
+            {game.endedAt ? new Date(game.endedAt).toLocaleDateString(language) : tr('Ongoing')}
           </span>
         </div>
       ))}
@@ -627,6 +632,7 @@ function PreferencesModal({ profile, onUpdate, onClose }: {
   onUpdate: (newPrefs: ProfilePreferences) => Promise<void>;
   onClose: () => void;
 }) {
+  const { tr } = useI18n();
   const [preferences, setPreferences] = useState<ProfilePreferences>(profile.preferences);
   const [error, setError] = useState('');
 
@@ -636,7 +642,7 @@ function PreferencesModal({ profile, onUpdate, onClose }: {
       await onUpdate(preferences);
       onClose();
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Failed to save preferences.');
+      setError(saveError instanceof Error ? saveError.message : tr('Failed to save preferences.'));
     }
   };
 
@@ -644,7 +650,7 @@ function PreferencesModal({ profile, onUpdate, onClose }: {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-background p-8 rounded-xl w-full max-w-md">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-text-primary">Preferences</h2>
+          <h2 className="text-2xl font-bold text-text-primary">{tr('Preferences')}</h2>
           <button onClick={onClose} className="text-text-secondary hover:text-text-primary text-xl">&times;</button>
         </div>
 
@@ -652,11 +658,11 @@ function PreferencesModal({ profile, onUpdate, onClose }: {
           e.preventDefault();
           void handleSave();
         }}>
-          {error && <p role="alert" className="mb-4 text-sm text-red-300">{error}</p>}
+          {error && <p role="alert" className="mb-4 text-sm text-red-300">{tr(error)}</p>}
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1">
-                Board Theme
+                {tr('Board Theme')}
               </label>
               <select
                 value={preferences.boardTheme || 'dark'}
@@ -666,14 +672,14 @@ function PreferencesModal({ profile, onUpdate, onClose }: {
                 })}
                 className="w-full px-4 py-3 bg-background-tertiary border border-text-secondary/20 rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
               >
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
-                <option value="wood">Wood</option>
+                <option value="dark">{tr('Dark')}</option>
+                <option value="light">{tr('Light')}</option>
+                <option value="wood">{tr('Wood')}</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1">
-                Piece Theme
+                {tr('Piece Theme')}
               </label>
               <select
                 value={preferences.pieceTheme || 'standard'}
@@ -683,8 +689,8 @@ function PreferencesModal({ profile, onUpdate, onClose }: {
                 })}
                 className="w-full px-4 py-3 bg-background-tertiary border border-text-secondary/20 rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
               >
-                <option value="standard">Standard</option>
-                <option value="merida">Merida</option>
+                <option value="standard">{tr('Standard')}</option>
+                <option value="merida">{tr('Merida')}</option>
                 <option value="cps">CPS</option>
               </select>
             </div>
@@ -692,7 +698,7 @@ function PreferencesModal({ profile, onUpdate, onClose }: {
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-text-secondary mb-1">
-              Sound
+              {tr('Sound')}
             </label>
             <select
               value={String(preferences.soundEnabled !== false)}
@@ -702,14 +708,14 @@ function PreferencesModal({ profile, onUpdate, onClose }: {
               })}
               className="w-full px-4 py-3 bg-background-tertiary border border-text-secondary/20 rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
             >
-              <option value="true">Enabled</option>
-              <option value="false">Disabled</option>
+              <option value="true">{tr('Enabled')}</option>
+              <option value="false">{tr('Disabled')}</option>
             </select>
           </div>
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-text-secondary mb-1">
-              Time Control
+              {tr('Time Control')}
             </label>
             <select
               value={preferences.timeControl || '3+2'}
@@ -719,10 +725,10 @@ function PreferencesModal({ profile, onUpdate, onClose }: {
               })}
               className="w-full px-4 py-3 bg-background-tertiary border border-text-secondary/20 rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
             >
-              <option value="1+0">1+0 Bullet</option>
-              <option value="3+2">3+2 Blitz</option>
-              <option value="5+0">5+0 Blitz</option>
-              <option value="10+0">10+0 Rapid</option>
+              <option value="1+0">1+0 {tr('Bullet')}</option>
+              <option value="3+2">3+2 {tr('Blitz')}</option>
+              <option value="5+0">5+0 {tr('Blitz')}</option>
+              <option value="10+0">10+0 {tr('Rapid')}</option>
               <option value="15+10">15+10</option>
             </select>
           </div>
@@ -731,7 +737,7 @@ function PreferencesModal({ profile, onUpdate, onClose }: {
             type="submit"
             className="w-full py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg transition-colors"
           >
-            Save Preferences
+            {tr('Save Preferences')}
           </button>
         </form>
       </div>

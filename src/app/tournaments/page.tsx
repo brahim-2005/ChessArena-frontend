@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 import { cn, getErrorMessage } from '@/lib/utils';
 import { supabase } from '@/lib/supabase/client';
+import { useI18n } from '@/lib/i18n/context';
 
 interface Tournament {
   id: string;
@@ -59,6 +60,7 @@ function getTournamentActionError(error: unknown, fallback: string) {
 
 export default function TournamentsPage() {
   const { user } = useAuth();
+  const { tr, language } = useI18n();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [organizerClubs, setOrganizerClubs] = useState<OrganizerClub[]>([]);
   const [newName, setNewName] = useState('');
@@ -388,8 +390,8 @@ export default function TournamentsPage() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <h1 className="text-3xl font-bold md:text-4xl">Tournaments</h1>
-            <p className="mt-1 text-text-secondary">Browse and register for scheduled tournaments.</p>
+            <h1 className="text-3xl font-bold md:text-4xl">{tr('Tournaments')}</h1>
+            <p className="mt-1 text-text-secondary">{tr('Browse and register for scheduled tournaments.')}</p>
           </div>
           <div className="flex gap-2 rounded-lg border border-text-secondary/10 bg-background-secondary p-1">
             {(['all', 'live', 'upcoming'] as const).map((value) => (
@@ -402,7 +404,7 @@ export default function TournamentsPage() {
                   filter === value ? 'bg-accent text-white' : 'text-text-secondary hover:text-text-primary'
                 )}
               >
-                {value}
+                {tr(value)}
               </button>
             ))}
           </div>
@@ -410,78 +412,78 @@ export default function TournamentsPage() {
 
         {error && (
           <div role="alert" className="mb-5 break-words rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-300">
-            {error}
+            {tr(error)}
             {!user && !error.toLowerCase().includes('database update') && (
-              <Link href="/auth/login" className="ml-2 underline">Sign in</Link>
+              <Link href="/auth/login" className="ms-2 underline">{tr('Sign in')}</Link>
             )}
           </div>
         )}
-        {notice && <p role="status" className="mb-5 rounded-lg border border-green-500/30 bg-green-500/10 p-4 text-green-300">{notice}</p>}
+        {notice && <p role="status" className="mb-5 rounded-lg border border-green-500/30 bg-green-500/10 p-4 text-green-300">{tr(notice)}</p>}
 
         {user && (
           <section className="mb-8 rounded-xl border border-accent/20 bg-background-secondary p-5 md:p-6">
             <div className="mb-4">
-              <h2 className="text-xl font-bold">Create a tournament</h2>
+              <h2 className="text-xl font-bold">{tr('Create a tournament')}</h2>
               <p className="mt-1 text-sm text-text-secondary">
-                Schedule an event, choose its format and clock, and publish it for players to join.
+                {tr('Schedule an event, choose its format and clock, and publish it for players to join.')}
               </p>
             </div>
             <form onSubmit={(event) => void handleCreateTournament(event)} className="grid gap-4 md:grid-cols-2">
               <label className="text-sm text-text-secondary">
-                Tournament name
+                {tr('Tournament name')}
                 <input
                   required
                   minLength={3}
                   maxLength={80}
                   value={newName}
                   onChange={(event) => setNewName(event.target.value)}
-                  placeholder="Friday rapid arena"
+                  placeholder={tr('Friday rapid arena')}
                   className="mt-1 w-full rounded-lg border border-text-secondary/20 bg-background-tertiary px-3 py-2 text-text-primary"
                 />
               </label>
               <label className="text-sm text-text-secondary">
-                Organizer
+                {tr('Organizer')}
                 <select
                   value={newClubId}
                   onChange={(event) => setNewClubId(event.target.value)}
                   className="mt-1 w-full rounded-lg border border-text-secondary/20 bg-background-tertiary px-3 py-2 text-text-primary"
                 >
-                  <option value="">My tournament</option>
+                  <option value="">{tr('My tournament')}</option>
                   {organizerClubs.map((club) => <option key={club.id} value={club.id}>{club.name}</option>)}
                 </select>
                 {organizerClubs.length === 0 && (
                   <span className="mt-1 block text-xs">
-                    Want a club event? <Link href="/clubs" className="text-accent hover:underline">Create a club</Link> first.
+                    {tr('Want a club event?')} <Link href="/clubs" className="text-accent hover:underline">{tr('Create a club')}</Link> {tr('first.')}
                   </span>
                 )}
               </label>
               <label className="text-sm text-text-secondary">
-                Format
+                {tr('Format')}
                 <select
                   value={newFormat}
                   onChange={(event) => setNewFormat(event.target.value as Tournament['format'])}
                   className="mt-1 w-full rounded-lg border border-text-secondary/20 bg-background-tertiary px-3 py-2 text-text-primary"
                 >
-                  <option value="arena">Arena — play continuously during the event</option>
-                  <option value="swiss">Swiss — pair players by score each round</option>
-                  <option value="knockout">Knockout — elimination bracket</option>
-                  <option value="round_robin">Round robin — everyone plays everyone</option>
+                  <option value="arena">{tr('Arena — play continuously during the event')}</option>
+                  <option value="swiss">{tr('Swiss — pair players by score each round')}</option>
+                  <option value="knockout">{tr('Knockout — elimination bracket')}</option>
+                  <option value="round_robin">{tr('Round robin — everyone plays everyone')}</option>
                 </select>
               </label>
               <label className="text-sm text-text-secondary">
-                Time control
+                {tr('Time control')}
                 <select
                   value={newTimeControl}
                   onChange={(event) => setNewTimeControl(event.target.value)}
                   className="mt-1 w-full rounded-lg border border-text-secondary/20 bg-background-tertiary px-3 py-2 text-text-primary"
                 >
                   {['1+0', '3+0', '3+2', '5+0', '10+0', '10+5', '15+10'].map((control) => (
-                    <option key={control} value={control}>{control.replace('+', ' min + ')} sec</option>
+                    <option key={control} value={control}>{control.replace('+', ' min + ')} {tr('sec')}</option>
                   ))}
                 </select>
               </label>
               <label className="text-sm text-text-secondary">
-                Start date and time
+                {tr('Start date and time')}
                 <input
                   required
                   type="datetime-local"
@@ -492,7 +494,7 @@ export default function TournamentsPage() {
                 />
               </label>
               <label className="text-sm text-text-secondary">
-                Player limit
+                {tr('Player limit')}
                 <input
                   required
                   type="number"
@@ -504,13 +506,13 @@ export default function TournamentsPage() {
                 />
               </label>
               <label className="text-sm text-text-secondary md:col-span-2">
-                Description
+                {tr('Description')}
                 <textarea
                   maxLength={1000}
                   rows={2}
                   value={newDescription}
                   onChange={(event) => setNewDescription(event.target.value)}
-                  placeholder="Share the rules and event details with players."
+                  placeholder={tr('Share the rules and event details with players.')}
                   className="mt-1 w-full rounded-lg border border-text-secondary/20 bg-background-tertiary px-3 py-2 text-text-primary"
                 />
               </label>
@@ -522,8 +524,8 @@ export default function TournamentsPage() {
                   className="mt-1 accent-accent"
                 />
                 <span>
-                  Rated event
-                  <span className="mt-0.5 block text-xs">This marks the event as rated; competitive rating updates are not active yet.</span>
+                  {tr('Rated event')}
+                  <span className="mt-0.5 block text-xs">{tr('This marks the event as rated; competitive rating updates are not active yet.')}</span>
                 </span>
               </label>
               <div className="flex justify-end md:col-span-2">
@@ -532,7 +534,7 @@ export default function TournamentsPage() {
                   disabled={creating}
                   className="rounded-lg bg-accent px-5 py-2.5 font-semibold text-white disabled:opacity-50"
                 >
-                  {creating ? 'Publishing…' : 'Publish tournament'}
+                  {creating ? tr('Publishing…') : tr('Publish tournament')}
                 </button>
               </div>
             </form>
@@ -541,25 +543,25 @@ export default function TournamentsPage() {
 
         {user && invitations.length > 0 && (
           <section className="mb-8 rounded-xl border border-accent/20 bg-background-secondary p-5">
-            <h2 className="mb-3 text-xl font-bold">Tournament invitations</h2>
+            <h2 className="mb-3 text-xl font-bold">{tr('Tournament invitations')}</h2>
             <ul className="space-y-3">
               {invitations.map((invitation) => (
                 <li key={invitation.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-background-tertiary p-4">
-                  <p><strong>{invitation.inviterUsername}</strong> invited you to <strong>{invitation.tournamentName}</strong>.</p>
+                  <p><strong>{invitation.inviterUsername}</strong> {tr('invited you to')} <strong>{invitation.tournamentName}</strong>.</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => void handleInvitationResponse(invitation, true)}
                       disabled={respondingId === invitation.id}
                       className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
                     >
-                      Accept
+                      {tr('Accept')}
                     </button>
                     <button
                       onClick={() => void handleInvitationResponse(invitation, false)}
                       disabled={respondingId === invitation.id}
                       className="rounded-lg border border-text-secondary/20 px-3 py-2 text-sm text-text-primary disabled:opacity-50"
                     >
-                      Decline
+                      {tr('Decline')}
                     </button>
                   </div>
                 </li>
@@ -569,11 +571,11 @@ export default function TournamentsPage() {
         )}
 
         {loading ? (
-          <p role="status" className="text-text-secondary">Loading tournaments…</p>
+          <p role="status" className="text-text-secondary">{tr('Loading tournaments…')}</p>
         ) : filteredTournaments.length === 0 ? (
           <div className="rounded-xl bg-background-secondary p-8 text-center">
             <p className="text-text-secondary">
-              {error ? 'Tournament listings could not be loaded.' : 'No tournaments are available for this filter.'}
+              {tr(error ? 'Tournament listings could not be loaded.' : 'No tournaments are available for this filter.')}
             </p>
           </div>
         ) : (
@@ -586,24 +588,24 @@ export default function TournamentsPage() {
                   <div>
                     <div className="mb-3 flex items-center justify-between gap-2">
                       <span className="rounded-full bg-background-tertiary px-3 py-1 text-xs font-semibold uppercase">
-                        {tournament.status}
+                        {tr(tournament.status)}
                       </span>
                       <span className="rounded bg-background-tertiary px-2 py-1 font-mono text-xs text-text-secondary">
-                        {tournament.format} · {tournament.timeControl}
+                        {tr(tournament.format.replace('_', ' '))} · {tournament.timeControl}
                       </span>
                     </div>
                     <h2 className="mb-2 text-xl font-bold">{tournament.name}</h2>
                     <div className="mb-2 flex flex-wrap gap-2 text-xs">
                       {tournament.clubName && <span className="rounded-full bg-accent/15 px-2.5 py-1 text-accent">{tournament.clubName}</span>}
-                      {tournament.isRated && <span className="rounded-full bg-background-tertiary px-2.5 py-1 text-text-secondary">Rated</span>}
+                      {tournament.isRated && <span className="rounded-full bg-background-tertiary px-2.5 py-1 text-text-secondary">{tr('Rated')}</span>}
                     </div>
                     {tournament.description && <p className="text-sm text-text-secondary">{tournament.description}</p>}
                   </div>
                   <div className="mt-5 border-t border-text-secondary/10 pt-4">
                     <p className="mb-4 flex justify-between text-sm text-text-secondary">
-                      <span>Players: {tournament.participantsCount}/{tournament.maxParticipants}</span>
+                      <span>{tr('Players')}: {tournament.participantsCount}/{tournament.maxParticipants}</span>
                       <time dateTime={tournament.startDate}>
-                        {new Date(tournament.startDate).toLocaleString(undefined, {
+                        {new Date(tournament.startDate).toLocaleString(language, {
                           dateStyle: 'medium',
                           timeStyle: 'short',
                         })}
@@ -614,14 +616,14 @@ export default function TournamentsPage() {
                       disabled={joiningId === tournament.id || closed}
                       className="w-full rounded-lg bg-accent py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {joiningId === tournament.id ? 'Registering…' : closed ? 'Registration closed' : 'Register'}
+                      {tr(joiningId === tournament.id ? 'Registering…' : closed ? 'Registration closed' : 'Register')}
                     </button>
                     {user && (tournament.isParticipant || tournament.organizerId === user.id) && (
                       <form onSubmit={(event) => void handleInvite(event, tournament)} className="mt-4 flex gap-2">
                         <input
                           type="text"
-                          aria-label={`Username to invite to ${tournament.name}`}
-                          placeholder="Invite by username"
+                          aria-label={`${tr('Username to invite to')} ${tournament.name}`}
+                          placeholder={tr('Invite by username')}
                           minLength={3}
                           maxLength={20}
                           pattern="[A-Za-z0-9_]{3,20}"
@@ -635,7 +637,7 @@ export default function TournamentsPage() {
                           disabled={invitingId === tournament.id || tournament.status === 'completed'}
                           className="rounded-lg border border-accent/30 px-3 py-2 text-sm font-semibold text-accent disabled:opacity-50"
                         >
-                          {invitingId === tournament.id ? 'Sending…' : 'Invite'}
+                          {invitingId === tournament.id ? tr('Sending…') : tr('Invite')}
                         </button>
                       </form>
                     )}

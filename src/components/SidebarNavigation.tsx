@@ -25,7 +25,7 @@ import Link from 'next/link';
 
 export default function SidebarNavigation() {
   const { user, signOut } = useAuth();
-  const { language, setLanguage, t } = useI18n();
+  const { language, setLanguage, t, tr } = useI18n();
   const pathname = usePathname();
 
   const navItems = [
@@ -50,10 +50,10 @@ export default function SidebarNavigation() {
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-background-secondary border-r border-text-secondary/15 min-h-screen p-4 sticky top-0 overflow-y-auto">
+    <aside className="hidden md:flex flex-col w-64 bg-background-secondary border-e border-text-secondary/15 min-h-screen p-4 sticky top-0 overflow-y-auto">
       {/* Brand Logo & Language Switcher */}
       <div className="flex items-center justify-between px-2 py-4 mb-4">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center shadow-lg shadow-accent/30 font-bold text-white text-xl">
             ♔
           </div>
@@ -61,7 +61,7 @@ export default function SidebarNavigation() {
             <h1 className="text-xl font-bold tracking-tight text-text-primary">
               Chess<span className="text-accent">Arena</span>
             </h1>
-            <p className="text-xs text-text-secondary">Pro Chess Platform</p>
+            <p className="text-xs text-text-secondary">{tr('Pro Chess Platform')}</p>
           </div>
         </div>
       </div>
@@ -71,7 +71,7 @@ export default function SidebarNavigation() {
         <div className="flex items-center justify-between bg-background-tertiary p-2 rounded-xl border border-text-secondary/10">
           <span className="text-xs text-text-secondary flex items-center gap-1.5 font-medium">
             <Globe className="w-3.5 h-3.5 text-accent" />
-            Lang
+            {tr('Lang')}
           </span>
           <select
             value={language}
@@ -98,7 +98,7 @@ export default function SidebarNavigation() {
               key={item.name}
               href={item.href}
               className={cn(
-                'flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
                 isActive
                   ? 'bg-accent text-white shadow-lg shadow-accent/20'
                   : 'text-text-secondary hover:bg-background-tertiary hover:text-text-primary'
@@ -115,7 +115,7 @@ export default function SidebarNavigation() {
       <div className="pt-4 border-t border-text-secondary/15 mt-auto">
         {user ? (
           <div className="bg-background-tertiary rounded-xl p-3 flex items-center justify-between">
-            <div className="flex items-center space-x-3 truncate">
+            <div className="flex items-center gap-3 truncate">
               <div className="w-9 h-9 rounded-full bg-accent/20 text-accent font-bold flex items-center justify-center flex-shrink-0">
                 {user.email?.charAt(0).toUpperCase()}
               </div>
@@ -123,7 +123,7 @@ export default function SidebarNavigation() {
                 <p className="text-sm font-medium text-text-primary truncate">
                   {user.email?.split('@')[0]}
                 </p>
-                <p className="text-xs text-text-secondary">ChessArena account</p>
+                <p className="text-xs text-text-secondary">{tr('ChessArena account')}</p>
               </div>
             </div>
             <button

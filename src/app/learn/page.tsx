@@ -74,7 +74,7 @@ const LESSONS: Lesson[] = [
 
 export default function LearnAcademyPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const { t } = useI18n();
+  const { t, tr } = useI18n();
 
   const categories = ['All', 'Chess Fundamentals', 'Opening Principles', 'Checkmate Patterns', 'Tactical Patterns', 'Positional Strategy', 'Endgame'];
 
@@ -101,7 +101,7 @@ export default function LearnAcademyPage() {
           </div>
           <div>
             <p className="text-xs text-text-secondary">{t('learningProgress')}</p>
-            <p className="font-semibold text-text-primary">2 / 6 {t('completed').toLowerCase()}</p>
+            <p className="font-semibold text-text-primary">2 / 6 {tr(t('completed').toLowerCase())}</p>
           </div>
         </div>
       </header>
@@ -118,7 +118,7 @@ export default function LearnAcademyPage() {
                 : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary hover:text-text-primary border border-text-secondary/10'
             }`}
           >
-            {cat}
+            {tr(cat)}
           </button>
         ))}
       </div>
@@ -133,15 +133,15 @@ export default function LearnAcademyPage() {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <span className="text-xs px-2.5 py-1 rounded-full bg-background-tertiary text-text-secondary border border-text-secondary/10">
-                  {lesson.difficulty}
+                  {tr(lesson.difficulty)}
                 </span>
                 <span className="text-xs text-text-secondary font-mono">{lesson.duration}</span>
               </div>
               <h3 className="text-lg font-bold text-text-primary mb-2 group-hover:text-accent transition-colors">
-                {lesson.title}
+                {tr(lesson.title)}
               </h3>
               <p className="text-text-secondary text-sm mb-6 line-clamp-2">
-                {lesson.description}
+                {tr(lesson.description)}
               </p>
             </div>
 

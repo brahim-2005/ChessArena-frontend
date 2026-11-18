@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
+import { useI18n } from '@/lib/i18n/context';
 
 export default function SignUpPage() {
   const router = useRouter();
   const { signUp } = useAuth();
+  const { tr } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -62,32 +64,32 @@ export default function SignUpPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-background-secondary rounded-xl p-8 border border-text-secondary/10">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-text-primary mb-2">Create Account</h1>
-          <p className="text-text-secondary">Join ChessArena and start playing</p>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">{tr('Create Account')}</h1>
+          <p className="text-text-secondary">{tr('Join ChessArena and start playing')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm" role="alert">
-              <p>{error}</p>
+              <p>{tr(error)}</p>
               {/rate.?limit|too many requests/i.test(error) && (
                 <div className="mt-3 flex flex-wrap gap-3">
-                  <Link href="/auth/login" className="underline hover:text-red-300">Sign in</Link>
-                  <Link href="/play" className="underline hover:text-red-300">Try local play without an account</Link>
+                  <Link href="/auth/login" className="underline hover:text-red-300">{tr('Sign in')}</Link>
+                  <Link href="/play" className="underline hover:text-red-300">{tr('Try local play without an account')}</Link>
                 </div>
               )}
             </div>
           )}
           {success && (
             <div role="status" className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm text-green-300">
-              <p>{success}</p>
-              <Link href="/auth/login" className="mt-2 inline-block underline hover:text-green-200">Go to sign in</Link>
+              <p>{tr(success)}</p>
+              <Link href="/auth/login" className="mt-2 inline-block underline hover:text-green-200">{tr('Go to sign in')}</Link>
             </div>
           )}
 
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-text-secondary mb-1">
-              Username
+              {tr('Username')}
             </label>
             <input
               id="username"
@@ -101,12 +103,12 @@ export default function SignUpPage() {
               pattern="^[a-zA-Z0-9_]+$"
               autoComplete="username"
             />
-            <p className="text-xs text-text-secondary mt-1">3-20 characters, letters, numbers, and underscores only</p>
+            <p className="text-xs text-text-secondary mt-1">{tr('3-20 characters, letters, numbers, and underscores only')}</p>
           </div>
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-text-secondary mb-1">
-              Email
+              {tr('Email')}
             </label>
             <input
               id="email"
@@ -121,7 +123,7 @@ export default function SignUpPage() {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-text-secondary mb-1">
-              Password
+              {tr('Password')}
             </label>
             <input
               id="password"
@@ -137,7 +139,7 @@ export default function SignUpPage() {
 
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-text-secondary mb-1">
-              Confirm Password
+              {tr('Confirm Password')}
             </label>
             <input
               id="confirmPassword"
@@ -155,16 +157,16 @@ export default function SignUpPage() {
             disabled={loading}
             className="w-full py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {loading ? tr('Creating Account...') : tr('Create Account')}
           </button>
         </form>
 
         <div className="mt-6 text-center text-text-secondary">
-          <p>Already have an account? <Link href="/auth/login" className="text-accent hover:text-accent-hover">Sign in</Link></p>
+          <p>{tr('Already have an account?')} <Link href="/auth/login" className="text-accent hover:text-accent-hover">{tr('Sign in')}</Link></p>
         </div>
 
         <div className="mt-6 text-center">
-          <Link href="/" className="text-text-secondary hover:text-text-primary">← Back to Home</Link>
+          <Link href="/" className="text-text-secondary hover:text-text-primary">← {tr('Back to Home')}</Link>
         </div>
       </div>
     </div>

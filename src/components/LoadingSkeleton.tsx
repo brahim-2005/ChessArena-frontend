@@ -39,7 +39,7 @@ export function LeaderboardSkeleton() {
           key={index}
           className="flex items-center justify-between p-3 rounded-xl bg-background-tertiary border border-text-secondary/10"
         >
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-x-3">
             <Skeleton className="w-6 h-5" />
             <Skeleton className="w-24 h-4" />
           </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
+import { useI18n } from '@/lib/i18n/context';
 import { Search, UserPlus, Clock, X, Check, AlertCircle, Shield, Sparkles } from 'lucide-react';
 
 interface PlayerProfile {
@@ -32,6 +33,7 @@ const TIME_CONTROLS = ['1+0', '3+0', '3+2', '5+0', '10+0', '10+5', '15+10'];
 
 export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { user } = useAuth();
+  const { tr } = useI18n();
   const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -123,7 +125,7 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
       if (!response.ok) {
         throw new Error(payload.error || 'Failed to send game invitation.');
       }
-      setSuccessMessage(`Invitation sent to @${player.username}! Waiting for response...`);
+      setSuccessMessage(`${tr('Invitation sent to')} @${player.username}! ${tr('Waiting for response…')}`);
       setSelectedPlayer(null);
       await fetchInvitations();
     } catch (err) {
@@ -172,12 +174,13 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
               <UserPlus className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Play a Friend by Username</h2>
-              <p className="text-xs text-text-secondary">Invite registered ChessArena members for live ranked matches.</p>
+              <h2 className="text-xl font-bold">{tr('Play a Friend by Username')}</h2>
+              <p className="text-xs text-text-secondary">{tr('Invite registered ChessArena members for live ranked matches.')}</p>
             </div>
           </div>
           <button
             onClick={onClose}
+            aria-label={tr('Close')}
             className="w-9 h-9 rounded-full bg-background-tertiary flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-background transition-colors"
           >
             <X className="w-5 h-5" />
@@ -187,14 +190,14 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
         {error && (
           <div className="mb-4 p-3.5 bg-red-500/20 border border-red-500/40 rounded-xl text-red-300 text-sm flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
+            <span>{tr(error)}</span>
           </div>
         )}
 
         {successMessage && (
           <div className="mb-4 p-3.5 bg-green-500/20 border border-green-500/40 rounded-xl text-green-300 text-sm flex items-center gap-2.5">
             <Check className="w-4 h-4 shrink-0" />
-            <span>{successMessage}</span>
+            <span>{tr(successMessage)}</span>
           </div>
         )}
 
@@ -203,7 +206,7 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
           <div className="mb-6 p-4 rounded-2xl bg-accent/15 border border-accent/40 space-y-3">
             <h3 className="text-sm font-bold text-accent flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              Incoming Game Invitations ({receivedInvitations.length})
+              {tr('Incoming Game Invitations')} ({receivedInvitations.length})
             </h3>
             {receivedInvitations.map((inv) => (
               <div key={inv.id} className="flex items-center justify-between bg-background p-3 rounded-xl border border-text-secondary/10">
@@ -214,7 +217,7 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
                   <div>
                     <p className="font-semibold text-sm">@{inv.sender?.username || 'Player'}</p>
                     <p className="text-xs text-text-secondary">
-                      {inv.time_control} · Rating: {inv.sender?.rating || 1200}
+                      {inv.time_control} · {tr('Rating')}: {inv.sender?.rating || 1200}
                     </p>
                   </div>
                 </div>
@@ -224,14 +227,14 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
                     disabled={submitting}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-white text-xs font-bold rounded-lg shadow-md transition-colors"
                   >
-                    Accept
+                    {tr('Accept')}
                   </button>
                   <button
                     onClick={() => void handleRespond(inv.id, 'decline')}
                     disabled={submitting}
                     className="px-3 py-2 bg-background-tertiary hover:bg-background text-text-secondary hover:text-text-primary text-xs font-semibold rounded-lg border border-text-secondary/20 transition-colors"
                   >
-                    Decline
+                    {tr('Decline')}
                   </button>
                 </div>
               </div>
@@ -243,22 +246,22 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
         {!selectedPlayer ? (
           <div className="space-y-4">
             <div className="relative">
-              <Search className="absolute left-4 top-3.5 w-4 h-4 text-text-secondary" />
+              <Search className="absolute start-4 top-3.5 w-4 h-4 text-text-secondary" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search registered username (e.g. alexander, sarah)..."
-                className="w-full rounded-2xl bg-background-tertiary border border-text-secondary/25 pl-11 pr-4 py-3 text-text-primary text-sm focus:border-accent focus:outline-none"
+                placeholder={tr('Search registered username (e.g. alexander, sarah)...')}
+                className="w-full rounded-2xl bg-background-tertiary border border-text-secondary/25 ps-11 pe-4 py-3 text-text-primary text-sm focus:border-accent focus:outline-none"
               />
             </div>
 
             {searching && (
-              <p className="text-xs text-text-secondary text-center py-2">Searching database…</p>
+              <p className="text-xs text-text-secondary text-center py-2">{tr('Searching database…')}</p>
             )}
 
             {searchResults.length > 0 && (
-              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-60 overflow-y-auto pe-1">
                 {searchResults.map((player) => (
                   <div
                     key={player.id}
@@ -274,12 +277,12 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
                           @{player.username}
                         </p>
                         <p className="text-xs text-text-secondary">
-                          {player.full_name || 'Chess Player'} · Rating: <strong className="text-text-primary">{player.rating}</strong>
+                          {player.full_name || tr('Chess Player')} · {tr('Rating')}: <strong className="text-text-primary">{player.rating}</strong>
                         </p>
                       </div>
                     </div>
                     <span className="px-3 py-1.5 bg-accent/20 text-accent text-xs font-semibold rounded-xl group-hover:bg-accent group-hover:text-white transition-colors">
-                      Select Player
+                      {tr('Select Player')}
                     </span>
                   </div>
                 ))}
@@ -288,7 +291,7 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
 
             {searchQuery.trim().length >= 2 && !searching && searchResults.length === 0 && (
               <div className="p-6 text-center text-text-secondary text-sm bg-background-tertiary rounded-2xl border border-text-secondary/10">
-                No registered players found matching &quot;{searchQuery}&quot;.
+                {tr('No registered players found matching')} &quot;{searchQuery}&quot;.
               </div>
             )}
           </div>
@@ -302,14 +305,14 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
                 </div>
                 <div>
                   <p className="font-bold text-base text-text-primary">@{selectedPlayer.username}</p>
-                  <p className="text-xs text-text-secondary">Rating: {selectedPlayer.rating} · Online</p>
+                  <p className="text-xs text-text-secondary">{tr('Rating')}: {selectedPlayer.rating} · {tr('Online')}</p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedPlayer(null)}
                 className="text-xs text-text-secondary hover:text-text-primary underline"
               >
-                Change Player
+                {tr('Change Player')}
               </button>
             </div>
 
@@ -317,7 +320,7 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
               {/* Time Control */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                  Time Control
+                  {tr('Time Control')}
                 </label>
                 <select
                   value={timeControl}
@@ -325,7 +328,7 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
                   className="w-full rounded-xl bg-background-tertiary border border-text-secondary/25 px-3 py-2.5 text-text-primary text-sm font-medium focus:border-accent focus:outline-none"
                 >
                   {TIME_CONTROLS.map((tc) => (
-                    <option key={tc} value={tc}>{tc} Blitz / Rapid</option>
+                    <option key={tc} value={tc}>{tc} {tr('Blitz / Rapid')}</option>
                   ))}
                 </select>
               </div>
@@ -333,32 +336,32 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
               {/* Game Mode */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                  Game Mode
+                  {tr('Game Mode')}
                 </label>
                 <select
                   value={gameMode}
                   onChange={(e) => setGameMode(e.target.value)}
                   className="w-full rounded-xl bg-background-tertiary border border-text-secondary/25 px-3 py-2.5 text-text-primary text-sm font-medium focus:border-accent focus:outline-none"
                 >
-                  <option value="standard">Standard Rated</option>
-                  <option value="rapid">Rapid Match</option>
-                  <option value="blitz">Blitz Match</option>
+                  <option value="standard">{tr('Standard Rated')}</option>
+                  <option value="rapid">{tr('Rapid Match')}</option>
+                  <option value="blitz">{tr('Blitz Match')}</option>
                 </select>
               </div>
 
               {/* Color Choice */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                  Your Color
+                  {tr('Your Color')}
                 </label>
                 <select
                   value={selectedColor}
                   onChange={(e) => setSelectedColor(e.target.value)}
                   className="w-full rounded-xl bg-background-tertiary border border-text-secondary/25 px-3 py-2.5 text-text-primary text-sm font-medium focus:border-accent focus:outline-none"
                 >
-                  <option value="random">Random Color</option>
-                  <option value="white">Play White</option>
-                  <option value="black">Play Black</option>
+                  <option value="random">{tr('Random Color')}</option>
+                  <option value="white">{tr('Play White')}</option>
+                  <option value="black">{tr('Play Black')}</option>
                 </select>
               </div>
             </div>
@@ -368,7 +371,7 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
                 onClick={() => setSelectedPlayer(null)}
                 className="px-5 py-2.5 rounded-xl border border-text-secondary/20 text-text-secondary hover:text-text-primary text-sm font-semibold transition-colors"
               >
-                Back
+                {tr('Back')}
               </button>
               <button
                 onClick={() => void handleSendInvite(selectedPlayer)}
@@ -376,7 +379,7 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
                 className="px-6 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-bold shadow-lg shadow-accent/25 transition-colors disabled:opacity-50 flex items-center gap-2"
               >
                 <UserPlus className="w-4 h-4" />
-                <span>{submitting ? 'Sending Invite…' : `Send Invite to @${selectedPlayer.username}`}</span>
+                <span>{submitting ? tr('Sending Invite…') : `${tr('Send Invite to')} @${selectedPlayer.username}`}</span>
               </button>
             </div>
           </div>
@@ -387,23 +390,23 @@ export default function PlayAFriendModal({ isOpen, onClose }: { isOpen: boolean;
           <div className="mt-8 pt-6 border-t border-text-secondary/15">
             <h3 className="text-sm font-bold text-text-secondary mb-3 flex items-center gap-2">
               <Clock className="w-4 h-4 text-accent" />
-              Pending Sent Invitations ({sentInvitations.length})
+              {tr('Pending Sent Invitations')} ({sentInvitations.length})
             </h3>
             <div className="space-y-2">
               {sentInvitations.map((inv) => (
                 <div key={inv.id} className="flex items-center justify-between bg-background-tertiary p-3 rounded-xl border border-text-secondary/10">
                   <div>
                     <p className="text-sm font-semibold text-text-primary">
-                      Invited <strong className="text-accent">@{inv.receiver?.username || 'Player'}</strong> ({inv.time_control})
+                      {tr('Invited')} <strong className="text-accent">@{inv.receiver?.username || tr('Player')}</strong> ({inv.time_control})
                     </p>
-                    <p className="text-xs text-text-secondary">Waiting for response…</p>
+                    <p className="text-xs text-text-secondary">{tr('Waiting for response…')}</p>
                   </div>
                   <button
                     onClick={() => void handleRespond(inv.id, 'cancel')}
                     disabled={submitting}
                     className="px-3 py-1.5 bg-background hover:bg-red-500/20 text-text-secondary hover:text-red-300 text-xs font-semibold rounded-lg border border-text-secondary/20 transition-colors"
                   >
-                    Cancel Invite
+                    {tr('Cancel Invite')}
                   </button>
                 </div>
               ))}

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase/client';
 import { getErrorMessage } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/context';
 
 interface Friendship {
   id: string;
@@ -46,6 +47,7 @@ function getChatError(error: unknown, fallback: string): string {
 
 export default function SocialPage() {
   const { user } = useAuth();
+  const { tr, language } = useI18n();
   const userId = user?.id;
   const [friends, setFriends] = useState<FriendRow[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -265,32 +267,32 @@ export default function SocialPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 text-text-primary">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold md:text-4xl">Community</h1>
-        <p className="mt-1 text-text-secondary">Find players and manage friend requests.</p>
+        <h1 className="text-3xl font-bold md:text-4xl">{tr('Community')}</h1>
+        <p className="mt-1 text-text-secondary">{tr('Find players and manage friend requests.')}</p>
       </header>
 
       {!user && (
         <div className="mb-6 rounded-xl bg-background-secondary p-5">
-          Sign in to search for players and manage friendships.{' '}
-          <Link href="/auth/login" className="text-accent hover:underline">Sign in</Link>
+          {tr('Sign in to search for players and manage friendships.')}{' '}
+          <Link href="/auth/login" className="text-accent hover:underline">{tr('Sign in')}</Link>
         </div>
       )}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/20 bg-background-secondary p-5">
         <div>
-          <h2 className="font-semibold">Find your chess club</h2>
-          <p className="mt-1 text-sm text-text-secondary">Join a community, meet local players, and organize club events.</p>
+          <h2 className="font-semibold">{tr('Find your chess club')}</h2>
+          <p className="mt-1 text-sm text-text-secondary">{tr('Join a community, meet local players, and organize club events.')}</p>
         </div>
-        <Link href="/clubs" className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white">Explore clubs</Link>
+        <Link href="/clubs" className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white">{tr('Explore clubs')}</Link>
       </div>
-      {error && <div role="alert" className="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-300">{error}</div>}
+      {error && <div role="alert" className="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-300">{tr(error)}</div>}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section className="rounded-xl border border-text-secondary/10 bg-background-secondary p-6">
-          <h2 className="mb-4 text-xl font-bold">Friends and requests</h2>
+          <h2 className="mb-4 text-xl font-bold">{tr('Friends and requests')}</h2>
           {loading ? (
-            <p role="status" className="text-sm text-text-secondary">Loading relationships…</p>
+            <p role="status" className="text-sm text-text-secondary">{tr('Loading relationships…')}</p>
           ) : friends.length === 0 ? (
-            <p className="text-sm text-text-secondary">No accepted friends or pending requests.</p>
+            <p className="text-sm text-text-secondary">{tr('No accepted friends or pending requests.')}</p>
           ) : (
             <ul className="space-y-3">
               {friends.map((friend) => (
@@ -300,7 +302,7 @@ export default function SocialPage() {
                       {friend.username}
                     </Link>
                     <p className="text-xs text-text-secondary">
-                      Rating {friend.rating} · {friend.relationshipStatus === 'accepted' ? 'Friend' : friend.canAccept ? 'Incoming request' : 'Request sent'}
+                      {tr('Rating')} {friend.rating} · {tr(friend.relationshipStatus === 'accepted' ? 'Friend' : friend.canAccept ? 'Incoming request' : 'Request sent')}
                     </p>
                   </div>
                   {friend.canAccept && (
@@ -309,7 +311,7 @@ export default function SocialPage() {
                       disabled={actionId === friend.relationshipId}
                       className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
                     >
-                      {actionId === friend.relationshipId ? 'Accepting…' : 'Accept'}
+                      {actionId === friend.relationshipId ? tr('Accepting…') : tr('Accept')}
                     </button>
                   )}
                   {friend.relationshipStatus === 'accepted' && (
@@ -322,7 +324,7 @@ export default function SocialPage() {
                       aria-pressed={selectedFriendId === friend.id}
                       className="rounded-lg border border-accent/30 px-3 py-2 text-sm text-accent"
                     >
-                      {selectedFriendId === friend.id ? 'Chat open' : 'Message'}
+                      {tr(selectedFriendId === friend.id ? 'Chat open' : 'Message')}
                     </button>
                   )}
                 </li>
@@ -332,12 +334,12 @@ export default function SocialPage() {
         </section>
 
         <section className="rounded-xl border border-text-secondary/10 bg-background-secondary p-6">
-          <h2 className="mb-4 text-xl font-bold">Find players</h2>
+          <h2 className="mb-4 text-xl font-bold">{tr('Find players')}</h2>
           <form onSubmit={(event) => void handleSearch(event)} className="flex gap-2">
             <input
               type="search"
-              aria-label="Search usernames"
-              placeholder="Search username"
+              aria-label={tr('Search usernames')}
+              placeholder={tr('Search username')}
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               minLength={3}
@@ -349,7 +351,7 @@ export default function SocialPage() {
               disabled={searching || !user}
               className="rounded-lg bg-accent px-4 py-2.5 font-semibold text-white disabled:opacity-50"
             >
-              {searching ? 'Searching…' : 'Search'}
+              {searching ? tr('Searching…') : tr('Search')}
             </button>
           </form>
 
@@ -359,21 +361,21 @@ export default function SocialPage() {
                 <li key={player.id} className="flex items-center justify-between gap-3 py-3">
                   <div>
                     <p className="font-medium">{player.username}</p>
-                    <p className="text-xs text-text-secondary">Rating {player.rating}</p>
+                    <p className="text-xs text-text-secondary">{tr('Rating')} {player.rating}</p>
                   </div>
                   <button
                     onClick={() => void handleAddFriend(player)}
                     disabled={actionId === player.id}
                     className="rounded-lg border border-accent/30 px-3 py-2 text-sm text-accent disabled:opacity-50"
                   >
-                    {actionId === player.id ? 'Sending…' : 'Add friend'}
+                    {actionId === player.id ? tr('Sending…') : tr('Add Friend')}
                   </button>
                 </li>
               ))}
             </ul>
           )}
           {searching === false && searchQuery.length > 0 && searchResults.length === 0 && !error && (
-            <p className="mt-4 text-sm text-text-secondary">No matching players found.</p>
+            <p className="mt-4 text-sm text-text-secondary">{tr('No matching players found.')}</p>
           )}
         </section>
       </div>
@@ -382,28 +384,28 @@ export default function SocialPage() {
         <section className="mt-6 rounded-xl border border-text-secondary/10 bg-background-secondary p-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold">Chat with {selectedFriend.username}</h2>
-              <p className="mt-1 text-xs text-text-secondary">Private messages refresh automatically every 5 seconds.</p>
+              <h2 className="text-xl font-bold">{tr('Chat with')} {selectedFriend.username}</h2>
+              <p className="mt-1 text-xs text-text-secondary">{tr('Private messages refresh automatically every 5 seconds.')}</p>
             </div>
             <button
               type="button"
               onClick={() => setSelectedFriendId(null)}
               className="rounded-lg border border-text-secondary/20 px-3 py-2 text-sm"
             >
-              Close chat
+              {tr('Close chat')}
             </button>
           </div>
 
-          {chatError && <p role="alert" className="mb-4 rounded-lg bg-red-500/10 p-3 text-sm text-red-300">{chatError}</p>}
+          {chatError && <p role="alert" className="mb-4 rounded-lg bg-red-500/10 p-3 text-sm text-red-300">{tr(chatError)}</p>}
           <div
-            aria-label={`Messages with ${selectedFriend.username}`}
+            aria-label={`${tr('Messages with')} ${selectedFriend.username}`}
             aria-live="polite"
             className="mb-4 flex max-h-96 min-h-32 flex-col gap-3 overflow-y-auto rounded-lg bg-background-tertiary p-4"
           >
             {chatLoading ? (
-              <p role="status" className="text-sm text-text-secondary">Loading messages…</p>
+              <p role="status" className="text-sm text-text-secondary">{tr('Loading messages…')}</p>
             ) : messages.length === 0 ? (
-              <p className="m-auto text-sm text-text-secondary">No messages yet. Say hello!</p>
+              <p className="m-auto text-sm text-text-secondary">{tr('No messages yet. Say hello!')}</p>
             ) : messages.map((message) => {
               const isOwnMessage = message.sender_id === user?.id;
               return (
@@ -412,9 +414,9 @@ export default function SocialPage() {
                   className={`max-w-[85%] rounded-xl px-4 py-2 ${isOwnMessage ? 'ml-auto bg-accent text-white' : 'mr-auto bg-background-secondary'}`}
                 >
                   <p className="whitespace-pre-wrap break-words">{message.body}</p>
-                  <p className={`mt-1 text-right text-[11px] ${isOwnMessage ? 'text-white/70' : 'text-text-secondary'}`}>
-                    {new Date(message.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                    {isOwnMessage && message.read_at ? ' · Read' : ''}
+                  <p className={`mt-1 text-end text-[11px] ${isOwnMessage ? 'text-white/70' : 'text-text-secondary'}`}>
+                    {new Date(message.created_at).toLocaleTimeString(language, { hour: 'numeric', minute: '2-digit' })}
+                    {isOwnMessage && message.read_at ? ` · ${tr('Read')}` : ''}
                   </p>
                 </article>
               );
@@ -422,26 +424,26 @@ export default function SocialPage() {
           </div>
 
           <form onSubmit={(event) => void handleSendMessage(event)} className="space-y-3">
-            <label htmlFor="private-message" className="sr-only">Write a message</label>
+            <label htmlFor="private-message" className="sr-only">{tr('Write a message')}</label>
             <textarea
               id="private-message"
               value={messageDraft}
               onChange={(event) => setMessageDraft(event.target.value)}
               maxLength={2000}
               rows={3}
-              placeholder="Write a message… (Shift+Enter for a new line)"
+              placeholder={tr('Write a message… (Shift+Enter for a new line)')}
               className="w-full resize-y rounded-lg border border-text-secondary/20 bg-background-tertiary px-4 py-3 text-text-primary"
             />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  aria-label="Toggle emoji picker"
+                  aria-label={tr('Toggle emoji picker')}
                   aria-expanded={showEmojiPicker}
                   onClick={() => setShowEmojiPicker((current) => !current)}
                   className="rounded-lg border border-text-secondary/20 px-3 py-2 text-sm"
                 >
-                  {showEmojiPicker ? 'Hide emojis' : 'Add emoji'}
+                  {tr(showEmojiPicker ? 'Hide emojis' : 'Add emoji')}
                 </button>
                 <span className="text-xs text-text-secondary">{messageDraft.length}/2000</span>
               </div>
@@ -450,11 +452,11 @@ export default function SocialPage() {
                 disabled={sendingMessage || !messageDraft.trim()}
                 className="rounded-lg bg-accent px-5 py-2.5 font-semibold text-white disabled:opacity-50"
               >
-                {sendingMessage ? 'Sending…' : 'Send message'}
+                {sendingMessage ? tr('Sending…') : tr('Send message')}
               </button>
             </div>
             {showEmojiPicker && (
-              <div aria-label="Choose an emoji" className="flex flex-wrap gap-2 rounded-lg border border-text-secondary/10 p-3">
+              <div aria-label={tr('Choose an emoji')} className="flex flex-wrap gap-2 rounded-lg border border-text-secondary/10 p-3">
                 {CHAT_EMOJIS.map((emoji) => (
                   <button
                     key={emoji}

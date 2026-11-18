@@ -51,7 +51,7 @@ const MOCK_STREAMS: LiveStream[] = [
 
 export default function LiveBroadcastsPage() {
   const [streams] = useState<LiveStream[]>(MOCK_STREAMS);
-  const { t } = useI18n();
+  const { t, tr } = useI18n();
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 text-text-primary">
@@ -77,7 +77,7 @@ export default function LiveBroadcastsPage() {
 
       {/* Featured Stream Banner */}
       <div className="bg-background-secondary rounded-2xl p-6 md:p-8 border border-text-secondary/15 mb-8 relative overflow-hidden shadow-card">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-red-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 end-0 w-96 h-96 bg-red-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center relative z-10">
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-3">
@@ -89,9 +89,9 @@ export default function LiveBroadcastsPage() {
                 1,420 {t('watching')}
               </span>
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold">Grandmaster Blitz Arena Showcase — Road to 3000</h2>
+            <h2 className="text-2xl md:text-3xl font-bold">{tr('Grandmaster Blitz Arena Showcase — Road to 3000')}</h2>
             <p className="text-text-secondary text-sm">
-              GM Alexander is playing high-stakes blitz games with live evaluation bar and real-time move commentary. Join the chat and analyze along!
+              {tr('GM Alexander is playing high-stakes blitz games with live evaluation bar and real-time move commentary. Join the chat and analyze along!')}
             </p>
             <div className="flex items-center gap-4 pt-2">
               <div className="flex items-center gap-3">
@@ -100,7 +100,7 @@ export default function LiveBroadcastsPage() {
                 </div>
                 <div>
                   <p className="font-bold">GM Alexander</p>
-                  <p className="text-xs text-text-secondary">Rating 2780 · {t('blitzSpecialist')}</p>
+                  <p className="text-xs text-text-secondary">{tr('Rating')} 2780 · {t('blitzSpecialist')}</p>
                 </div>
               </div>
             </div>
@@ -137,10 +137,10 @@ export default function LiveBroadcastsPage() {
                 </span>
               </div>
               <h3 className="text-lg font-bold text-text-primary mb-2 group-hover:text-accent transition-colors">
-                {stream.title}
+                {tr(stream.title)}
               </h3>
               <p className="text-text-secondary text-sm mb-4">
-                {stream.streamer} ({stream.rating}) · {stream.timeControl}
+                {stream.streamer} ({stream.rating}) · {tr(stream.timeControl)}
               </p>
             </div>
 

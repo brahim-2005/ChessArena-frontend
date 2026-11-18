@@ -32,7 +32,7 @@ const BOT_LIST: BotProfile[] = [
 
 export default function PlayBotsPage() {
   const [filter, setFilter] = useState('All');
-  const { t } = useI18n();
+  const { tr } = useI18n();
 
   const filteredBots = filter === 'All' ? BOT_LIST : BOT_LIST.filter(b => b.difficulty === filter);
 
@@ -43,11 +43,11 @@ export default function PlayBotsPage() {
           <div className="flex items-center gap-2 mb-2">
             <span className="px-3 py-1 bg-accent/20 text-accent text-xs font-semibold rounded-full border border-accent/30 flex items-center gap-1.5">
               <Bot className="w-3.5 h-3.5" />
-              Bot Arena & Practice
+              {tr('Bot Arena & Practice')}
             </span>
           </div>
-          <h1 className="text-3xl font-bold md:text-4xl">Play Against Chess Bots</h1>
-          <p className="mt-1 text-text-secondary">Choose from 12 difficulty tiers ranging from 100 ELO to 2800+ Grandmaster AI.</p>
+          <h1 className="text-3xl font-bold md:text-4xl">{tr('Play Against Chess Bots')}</h1>
+          <p className="mt-1 text-text-secondary">{tr('Choose from 12 difficulty tiers ranging from 100 ELO to 2800+ Grandmaster AI.')}</p>
         </div>
       </header>
 
@@ -63,7 +63,7 @@ export default function PlayBotsPage() {
                 : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary hover:text-text-primary border border-text-secondary/10'
             }`}
           >
-            {f}
+            {tr(f)}
           </button>
         ))}
       </div>
@@ -80,29 +80,29 @@ export default function PlayBotsPage() {
                 <span className="text-4xl p-2 bg-background-tertiary rounded-2xl border border-text-secondary/10">
                   {bot.avatar}
                 </span>
-                <div className="text-right">
+                <div className="text-end">
                   <span className="text-xs px-2.5 py-1 rounded-full bg-accent/10 text-accent font-mono font-bold border border-accent/20">
                     {bot.elo} ELO
                   </span>
-                  <p className="text-xs text-text-secondary mt-1">{bot.difficulty}</p>
+                  <p className="text-xs text-text-secondary mt-1">{tr(bot.difficulty)}</p>
                 </div>
               </div>
               <h3 className="text-xl font-bold text-text-primary mb-1 group-hover:text-accent transition-colors">
                 {bot.name}
               </h3>
-              <p className="text-xs font-semibold text-accent mb-2">{bot.style}</p>
+              <p className="text-xs font-semibold text-accent mb-2">{tr(bot.style)}</p>
               <p className="text-text-secondary text-sm mb-6 line-clamp-2">
-                {bot.description}
+                {tr(bot.description)}
               </p>
             </div>
 
             <div className="pt-4 border-t border-text-secondary/10 flex items-center justify-between">
-              <span className="text-xs text-text-secondary">Ready to play</span>
+              <span className="text-xs text-text-secondary">{tr('Ready to play')}</span>
               <Link
                 href={`/play?mode=bot&bot=${bot.id}&elo=${bot.elo}`}
                 className="px-4 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-semibold rounded-xl transition-colors shadow-md shadow-accent/20 flex items-center gap-1.5"
               >
-                <span>Play Now</span>
+                <span>{tr('Play Now')}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

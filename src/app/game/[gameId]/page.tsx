@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { GameEngine } from '@/lib/chess/game';
 import ChessBoard from '@/components/ChessBoard';
+import { useI18n } from '@/lib/i18n/context';
 
 interface GameResponse {
   id: string;
@@ -25,6 +26,7 @@ export default function GamePage() {
   const gameId = Array.isArray(gameIdParam) ? gameIdParam[0] : gameIdParam;
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const { tr } = useI18n();
   const [game, setGame] = useState<GameResponse | null>(null);
   const [engine, setEngine] = useState<GameEngine | null>(null);
   const [isWhitePlayer, setIsWhitePlayer] = useState(true);
@@ -102,7 +104,7 @@ export default function GamePage() {
 
   const handleResign = async () => {
     if (!game || game.status !== 'in_progress' || savingMove) return;
-    if (!window.confirm('Are you sure you want to resign this game?')) return;
+    if (!window.confirm(tr('Are you sure you want to resign this game?'))) return;
 
     setSavingMove(true);
     setError(null);
@@ -127,7 +129,7 @@ export default function GamePage() {
   if (loading || authLoading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <p role="status" className="text-text-secondary">Loading game…</p>
+        <p role="status" className="text-text-secondary">{tr('Loading game…')}</p>
       </div>
     );
   }
@@ -135,10 +137,10 @@ export default function GamePage() {
   if (!game || !engine) {
     return (
       <div className="mx-auto max-w-xl rounded-xl bg-background-secondary p-8 text-center">
-        <h1 className="text-2xl font-bold text-text-primary">Game unavailable</h1>
-        <p role="alert" className="mt-3 text-red-300">{error || 'This game could not be loaded.'}</p>
+        <h1 className="text-2xl font-bold text-text-primary">{tr('Game unavailable')}</h1>
+        <p role="alert" className="mt-3 text-red-300">{tr(error || 'This game could not be loaded.')}</p>
         <Link href="/play" className="mt-6 inline-block rounded-lg bg-accent px-5 py-3 font-semibold text-white">
-          Back to Play
+          {tr('Back to Play')}
         </Link>
       </div>
     );
@@ -156,25 +158,25 @@ export default function GamePage() {
     : null;
   const ratingLabel = myRatingChange === null
     ? ''
-    : ` · Rating ${myRatingChange > 0 ? '+' : ''}${myRatingChange}`;
+    : ` · ${tr('Rating')} ${myRatingChange > 0 ? '+' : ''}${myRatingChange}`;
 
   return (
     <div className="mx-auto max-w-7xl p-4">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Game #{game.id.slice(0, 8)}</h1>
+          <h1 className="text-2xl font-bold text-text-primary">{tr('Game')} #{game.id.slice(0, 8)}</h1>
           <p className="mt-1 text-sm text-text-secondary">
-            {game.status === 'in_progress' ? 'Moves sync with the game server.' : `${resultLabel || game.status}${ratingLabel}`}
+            {game.status === 'in_progress' ? tr('Moves sync with the game server.') : `${tr(resultLabel || game.status)}${ratingLabel}`}
           </p>
         </div>
         <Link href="/play" className="rounded-lg border border-text-secondary/20 px-4 py-2 text-text-primary hover:bg-background-secondary">
-          Back to Lobby
+          {tr('Back to Lobby')}
         </Link>
       </div>
 
       {error && (
         <div role="alert" className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-300">
-          {error}
+          {tr(error)}
         </div>
       )}
 
@@ -191,14 +193,14 @@ export default function GamePage() {
             allowUndo={false}
             isInputEnabled={game.status === 'in_progress' && !savingMove}
           />
-          {savingMove && <p role="status" className="mt-2 text-center text-sm text-text-secondary">Saving move…</p>}
+          {savingMove && <p role="status" className="mt-2 text-center text-sm text-text-secondary">{tr('Saving move…')}</p>}
 
           <div className="mt-6 rounded-lg border border-text-secondary/10 bg-background-secondary p-4">
-            <h2 className="mb-3 font-semibold text-text-primary">Move History</h2>
+            <h2 className="mb-3 font-semibold text-text-primary">{tr('Move History')}</h2>
             <div className="grid max-h-48 grid-cols-2 gap-2 overflow-y-auto font-mono text-sm">
               {engine.moveHistory.map((move, index) => (
                 <div key={`${index}-${move.move}`} className="flex items-center gap-2">
-                  <span className="w-8 text-right text-text-secondary">{Math.floor(index / 2) + 1}.</span>
+                  <span className="w-8 text-end text-text-secondary">{Math.floor(index / 2) + 1}.</span>
                   <span className="text-text-primary">{move.move}</span>
                 </div>
               ))}
@@ -208,12 +210,12 @@ export default function GamePage() {
 
         <aside className="space-y-4">
           <div className="rounded-lg border border-text-secondary/10 bg-background-secondary p-4">
-            <h2 className="mb-4 font-semibold text-text-primary">Players</h2>
+            <h2 className="mb-4 font-semibold text-text-primary">{tr('Players')}</h2>
             <p className="rounded-lg bg-background-tertiary p-3 text-text-primary">
-              White {game.whitePlayerId === user?.id ? '(you)' : ''}
+              {tr('White')} {game.whitePlayerId === user?.id ? `(${tr('you')})` : ''}
             </p>
             <p className="mt-3 rounded-lg bg-background-tertiary p-3 text-text-primary">
-              Black {game.blackPlayerId === user?.id ? '(you)' : ''}
+              {tr('Black')} {game.blackPlayerId === user?.id ? `(${tr('you')})` : ''}
             </p>
           </div>
 
@@ -224,7 +226,7 @@ export default function GamePage() {
                 disabled={savingMove}
                 className="w-full rounded-lg border border-red-500/30 bg-red-500/20 px-4 py-2 text-red-300 disabled:opacity-50"
               >
-                Resign
+                {tr('Resign')}
               </button>
             </div>
           )}

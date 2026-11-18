@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
+import { useI18n } from '@/lib/i18n/context';
 
 export default function LoginPage() {
   const router = useRouter();
   const { signIn } = useAuth();
+  const { tr } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -32,20 +34,20 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-background-secondary rounded-xl p-8 border border-text-secondary/15 shadow-card">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-text-primary mb-2">Welcome Back</h1>
-          <p className="text-text-secondary">Sign in to your ChessArena account</p>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">{tr('Welcome Back')}</h1>
+          <p className="text-text-secondary">{tr('Sign in to your ChessArena account')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div role="alert" className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
-              {error}
+              {tr(error)}
             </div>
           )}
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-text-secondary mb-1">
-              Email
+              {tr('Email')}
             </label>
             <input
               id="email"
@@ -60,7 +62,7 @@ export default function LoginPage() {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-text-secondary mb-1">
-              Password
+              {tr('Password')}
             </label>
             <input
               id="password"
@@ -78,17 +80,17 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg transition-colors disabled:opacity-50 shadow-lg shadow-accent/20"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? tr('Signing in...') : tr('Sign In')}
           </button>
         </form>
 
         <div className="mt-6 text-center text-text-secondary text-sm">
-          <p>Don&apos;t have an account? <Link href="/auth/signup" className="text-accent hover:text-accent-hover font-medium">Sign up</Link></p>
-          <p className="mt-2"><Link href="/auth/reset-password" className="text-accent hover:text-accent-hover">Forgot password?</Link></p>
+          <p>{tr("Don't have an account?")} <Link href="/auth/signup" className="text-accent hover:text-accent-hover font-medium">{tr('Sign up')}</Link></p>
+          <p className="mt-2"><Link href="/auth/reset-password" className="text-accent hover:text-accent-hover">{tr('Forgot password?')}</Link></p>
         </div>
 
         <div className="mt-6 text-center">
-          <Link href="/" className="text-text-secondary hover:text-text-primary text-sm">← Back to Home</Link>
+          <Link href="/" className="text-text-secondary hover:text-text-primary text-sm">← {tr('Back to Home')}</Link>
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase/client';
 import { getErrorMessage } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/context';
 
 interface Club {
   id: string;
@@ -18,6 +19,7 @@ interface Club {
 
 export default function ClubsPage() {
   const { user } = useAuth();
+  const { tr } = useI18n();
   const [clubs, setClubs] = useState<Club[]>([]);
   const [search, setSearch] = useState('');
   const [name, setName] = useState('');
@@ -169,58 +171,58 @@ export default function ClubsPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 text-text-primary">
       <header className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wide text-accent">ChessArena community</p>
-        <h1 className="mt-1 text-3xl font-bold md:text-4xl">Clubs</h1>
+        <p className="text-sm font-semibold uppercase tracking-wide text-accent">{tr('ChessArena community')}</p>
+        <h1 className="mt-1 text-3xl font-bold md:text-4xl">{tr('Clubs')}</h1>
         <p className="mt-2 max-w-2xl text-text-secondary">
-          Find your chess community, meet players, and organize club tournaments.
+          {tr('Find your chess community, meet players, and organize club tournaments.')}
         </p>
       </header>
 
-      {error && <div role="alert" className="mb-5 break-words rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-300">{error}</div>}
-      {notice && <p role="status" className="mb-5 rounded-lg border border-green-500/30 bg-green-500/10 p-4 text-green-300">{notice}</p>}
+      {error && <div role="alert" className="mb-5 break-words rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-300">{tr(error)}</div>}
+      {notice && <p role="status" className="mb-5 rounded-lg border border-green-500/30 bg-green-500/10 p-4 text-green-300">{tr(notice)}</p>}
 
       {!user && (
         <div className="mb-6 rounded-xl border border-accent/20 bg-background-secondary p-5">
-          Sign in to join a club or create one.{' '}
-          <Link href="/auth/login" className="font-semibold text-accent hover:underline">Sign in</Link>
+          {tr('Sign in to join a club or create one.')}{' '}
+          <Link href="/auth/login" className="font-semibold text-accent hover:underline">{tr('Sign in')}</Link>
         </div>
       )}
 
       {user && (
         <section className="mb-8 rounded-xl border border-accent/20 bg-background-secondary p-5 md:p-6">
-          <h2 className="text-xl font-bold">Start a club</h2>
-          <p className="mt-1 text-sm text-text-secondary">Create a public home for your chess group. You will be its owner.</p>
+          <h2 className="text-xl font-bold">{tr('Start a club')}</h2>
+          <p className="mt-1 text-sm text-text-secondary">{tr('Create a public home for your chess group. You will be its owner.')}</p>
           <form onSubmit={(event) => void handleCreate(event)} className="mt-4 grid gap-3 md:grid-cols-2">
             <label className="text-sm text-text-secondary">
-              Club name
+              {tr('Club name')}
               <input
                 required
                 minLength={3}
                 maxLength={40}
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="e.g. Downtown Chess Club"
+                placeholder={tr('e.g. Downtown Chess Club')}
                 className="mt-1 w-full rounded-lg border border-text-secondary/20 bg-background-tertiary px-3 py-2 text-text-primary"
               />
             </label>
             <label className="text-sm text-text-secondary">
-              Short description
+              {tr('Short description')}
               <input
                 maxLength={500}
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
-                placeholder="What brings your players together?"
+                placeholder={tr('What brings your players together?')}
                 className="mt-1 w-full rounded-lg border border-text-secondary/20 bg-background-tertiary px-3 py-2 text-text-primary"
               />
             </label>
             <div className="flex items-center justify-between gap-3 md:col-span-2">
-              <p className="text-xs text-text-secondary">Club addresses are generated from the name and must be unique.</p>
+              <p className="text-xs text-text-secondary">{tr('Club addresses are generated from the name and must be unique.')}</p>
               <button
                 type="submit"
                 disabled={saving}
                 className="shrink-0 rounded-lg bg-accent px-4 py-2 font-semibold text-white disabled:opacity-50"
               >
-                {saving ? 'Creating…' : 'Create club'}
+                {saving ? tr('Creating…') : tr('Create club')}
               </button>
             </div>
           </form>
@@ -230,26 +232,26 @@ export default function ClubsPage() {
       <section>
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-bold">Discover clubs</h2>
-            <p className="mt-1 text-sm text-text-secondary">{clubs.length} public {clubs.length === 1 ? 'club' : 'clubs'}</p>
+            <h2 className="text-2xl font-bold">{tr('Discover clubs')}</h2>
+            <p className="mt-1 text-sm text-text-secondary">{clubs.length} {tr(clubs.length === 1 ? 'public club' : 'public clubs')}</p>
           </div>
           <label className="w-full text-sm text-text-secondary sm:w-72">
-            Search clubs
+            {tr('Search clubs')}
             <input
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Name or topic"
+              placeholder={tr('Name or topic')}
               className="mt-1 w-full rounded-lg border border-text-secondary/20 bg-background-secondary px-3 py-2 text-text-primary"
             />
           </label>
         </div>
 
         {loading ? (
-          <p role="status" className="rounded-xl bg-background-secondary p-6 text-text-secondary">Loading clubs…</p>
+          <p role="status" className="rounded-xl bg-background-secondary p-6 text-text-secondary">{tr('Loading clubs…')}</p>
         ) : visibleClubs.length === 0 ? (
           <div className="rounded-xl bg-background-secondary p-8 text-center">
-            <p className="text-text-secondary">{error ? 'Club listings could not be loaded.' : search ? 'No clubs match your search.' : 'No clubs yet. Create one and invite your chess friends.'}</p>
+            <p className="text-text-secondary">{tr(error ? 'Club listings could not be loaded.' : search ? 'No clubs match your search.' : 'No clubs yet. Create one and invite your chess friends.')}</p>
           </div>
         ) : (
           <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -261,23 +263,23 @@ export default function ClubsPage() {
                       <h3 className="text-lg font-bold">{club.name}</h3>
                       <p className="text-xs text-text-secondary">/{club.slug}</p>
                     </div>
-                    {club.role && <span className="rounded-full bg-accent/15 px-2.5 py-1 text-xs font-semibold capitalize text-accent">{club.role}</span>}
+                    {club.role && <span className="rounded-full bg-accent/15 px-2.5 py-1 text-xs font-semibold capitalize text-accent">{tr(club.role)}</span>}
                   </div>
-                  <p className="mt-3 min-h-10 text-sm text-text-secondary">{club.description || 'A ChessArena player community.'}</p>
+                  <p className="mt-3 min-h-10 text-sm text-text-secondary">{club.description || tr('A ChessArena player community.')}</p>
                 </div>
                 <div className="mt-5 flex items-center justify-between border-t border-text-secondary/10 pt-4">
-                  <span className="text-sm text-text-secondary">{club.memberCount} {club.memberCount === 1 ? 'member' : 'members'}</span>
+                  <span className="text-sm text-text-secondary">{club.memberCount} {tr(club.memberCount === 1 ? 'member' : 'members')}</span>
                   <button
                     onClick={() => void handleMembership(club)}
                     disabled={!user || actionId === club.id || club.role === 'owner'}
                     className="rounded-lg border border-accent/40 px-3 py-2 text-sm font-semibold text-accent disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {actionId === club.id ? 'Saving…' : club.role === 'owner' ? 'You own this club' : club.role ? 'Leave club' : user ? 'Join club' : 'Sign in to join'}
+                    {tr(actionId === club.id ? 'Saving…' : club.role === 'owner' ? 'You own this club' : club.role ? 'Leave club' : user ? 'Join club' : 'Sign in to join')}
                   </button>
                 </div>
                 {club.role && ['owner', 'admin', 'moderator'].includes(club.role) && (
                   <Link href="/tournaments" className="mt-3 text-center text-sm font-semibold text-accent hover:underline">
-                    Organize a tournament
+                    {tr('Organize a tournament')}
                   </Link>
                 )}
               </li>

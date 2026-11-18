@@ -55,7 +55,7 @@ const COACHES: Coach[] = [
 
 export default function SessionsPage() {
   const [coaches] = useState<Coach[]>(COACHES);
-  const { t } = useI18n();
+  const { t, tr } = useI18n();
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 text-text-primary">
@@ -83,20 +83,20 @@ export default function SessionsPage() {
       {/* Featured Banner */}
       <div className="bg-background-secondary rounded-2xl p-6 md:p-8 border border-text-secondary/15 mb-8 shadow-card">
         <div className="max-w-2xl">
-          <h2 className="text-2xl font-bold mb-2">Accelerate Your Chess Rating with Expert Coaches</h2>
+          <h2 className="text-2xl font-bold mb-2">{tr('Accelerate Your Chess Rating with Expert Coaches')}</h2>
           <p className="text-text-secondary text-sm mb-6">
-            Get personalized game analysis, custom opening repertoires, and live interactive board coaching with certified masters.
+            {tr('Get personalized game analysis, custom opening repertoires, and live interactive board coaching with certified masters.')}
           </p>
           <div className="flex flex-wrap gap-4 text-sm text-text-secondary">
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-accent" /> Shared Interactive Board</span>
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-accent" /> Live Video & Audio Calls</span>
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-accent" /> Recorded Session Playback</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-accent" /> {tr('Shared Interactive Board')}</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-accent" /> {tr('Live Video & Audio Calls')}</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-accent" /> {tr('Recorded Session Playback')}</span>
           </div>
         </div>
       </div>
 
       {/* Coach Directory */}
-      <h2 className="text-xl font-bold mb-6">Featured Chess Coaches</h2>
+      <h2 className="text-xl font-bold mb-6">{tr('Featured Chess Coaches')}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {coaches.map((coach) => (
           <div
@@ -106,22 +106,22 @@ export default function SessionsPage() {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <span className="px-2.5 py-1 bg-accent/20 text-accent text-xs font-semibold rounded-full border border-accent/30">
-                  {coach.title}
+                  {tr(coach.title)}
                 </span>
                 <span className="text-sm font-bold font-mono text-accent">${coach.hourlyRate}/hr</span>
               </div>
               <h3 className="text-lg font-bold text-text-primary mb-1 group-hover:text-accent transition-colors">
                 {coach.name}
               </h3>
-              <p className="text-xs text-text-secondary mb-3">Rating: {coach.rating} · ⭐ {coach.ratingScore} ({coach.reviewsCount} reviews)</p>
-              <p className="text-xs font-semibold text-accent mb-3">{coach.specialization}</p>
+              <p className="text-xs text-text-secondary mb-3">{tr('Rating')}: {coach.rating} · ⭐ {coach.ratingScore} ({coach.reviewsCount} {tr('reviews')})</p>
+              <p className="text-xs font-semibold text-accent mb-3">{tr(coach.specialization)}</p>
               <p className="text-text-secondary text-sm mb-6 line-clamp-3">
-                {coach.bio}
+                {tr(coach.bio)}
               </p>
             </div>
 
             <div className="pt-4 border-t border-text-secondary/10 flex items-center justify-between">
-              <span className="text-xs text-text-secondary">Available Today</span>
+              <span className="text-xs text-text-secondary">{tr('Available Today')}</span>
               <Link
                 href={`/sessions/book?coach=${coach.id}`}
                 className="px-4 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-semibold rounded-xl transition-colors shadow-md shadow-accent/20 flex items-center gap-1.5"

@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
 import { Play, Trophy, Puzzle, Award, ArrowRight, BookOpen, Radio, Video, type LucideIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import { useI18n } from '@/lib/i18n/context';
 
 interface LeaderboardPreview {
   username: string;
@@ -13,6 +14,7 @@ interface LeaderboardPreview {
 
 export default function HomePage() {
   const { user } = useAuth();
+  const { tr } = useI18n();
   const [topPlayers, setTopPlayers] = useState<LeaderboardPreview[]>([]);
   const [leaderboardState, setLeaderboardState] = useState<'loading' | 'ready' | 'error'>('loading');
 
@@ -53,18 +55,18 @@ export default function HomePage() {
     <div className="space-y-12">
       {/* Welcome Hero Dashboard Header */}
       <div className="bg-background-secondary rounded-2xl p-6 md:p-8 border border-text-secondary/15 shadow-card relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 end-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-x-4">
             <div className="w-16 h-16 rounded-2xl bg-accent text-white font-bold text-2xl flex items-center justify-center shadow-lg shadow-accent/30">
               {user ? String(user.user_metadata.username || user.email || 'P').charAt(0).toUpperCase() : '♔'}
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-text-primary">
-                {user ? <>Welcome back, <span className="text-accent">{user.user_metadata.username || user.email?.split('@')[0] || 'Player'}</span>!</> : <>Welcome to <span className="text-accent">ChessArena</span></>}
+                {user ? <>{tr('Welcome back,')} <span className="text-accent">{user.user_metadata.username || user.email?.split('@')[0] || tr('Player')}</span>!</> : <>{tr('Welcome to')} <span className="text-accent">ChessArena</span></>}
               </h1>
               <p className="text-text-secondary text-sm mt-1 flex items-center gap-2">
-                {user ? 'Signed in & Ready to Play' : 'Play a local game or sign in to save your progress.'}
+                {user ? tr('Signed in & Ready to Play') : tr('Play a local game or sign in to save your progress.')}
               </p>
             </div>
           </div>
@@ -72,17 +74,17 @@ export default function HomePage() {
           <div className="flex flex-wrap gap-3">
             <Link
               href="/play"
-              className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-xl transition-all shadow-lg shadow-accent/30 flex items-center space-x-2"
+              className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-xl transition-all shadow-lg shadow-accent/30 flex items-center gap-x-2"
             >
               <Play className="w-5 h-5 fill-current" />
-              <span>Play Chess</span>
+              <span>{tr('Play Chess')}</span>
             </Link>
             <Link
               href="/tournaments"
-              className="px-6 py-3 bg-background-tertiary hover:bg-background text-text-primary font-semibold rounded-xl transition-all border border-text-secondary/20 flex items-center space-x-2"
+              className="px-6 py-3 bg-background-tertiary hover:bg-background text-text-primary font-semibold rounded-xl transition-all border border-text-secondary/20 flex items-center gap-x-2"
             >
               <Trophy className="w-5 h-5 text-yellow-400" />
-              <span>Tournaments</span>
+              <span>{tr('Tournaments')}</span>
             </Link>
           </div>
         </div>
@@ -91,32 +93,32 @@ export default function HomePage() {
       {/* Quick Access Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <QuickCard
-          title="Play Online"
-          description="Matchmaking and bot games"
+          title={tr('Play Online')}
+          description={tr('Matchmaking and bot games')}
           icon={Play}
           href="/play"
-          badge="Matchmaking"
+          badge={tr('Matchmaking')}
         />
         <QuickCard
-          title="Chess Academy"
-          description="Interactive lessons & tutorials"
+          title={tr('Chess Academy')}
+          description={tr('Interactive lessons & tutorials')}
           icon={BookOpen}
           href="/learn"
-          badge="Learn"
+          badge={tr('Learn')}
         />
         <QuickCard
-          title="Live Broadcasts"
-          description="Watch top players stream live"
+          title={tr('Live Broadcasts')}
+          description={tr('Watch top players stream live')}
           icon={Radio}
           href="/live"
-          badge="Broadcasting"
+          badge={tr('Broadcasting')}
         />
         <QuickCard
-          title="Live Sessions"
-          description="Book 1-on-1 coaching & classrooms"
+          title={tr('Live Sessions')}
+          description={tr('Book 1-on-1 coaching & classrooms')}
           icon={Video}
           href="/sessions"
-          badge="Coaching"
+          badge={tr('Coaching')}
         />
       </div>
 
@@ -126,27 +128,27 @@ export default function HomePage() {
           <div>
             <div className="flex justify-between items-center mb-4">
               <span className="px-3 py-1 bg-accent/20 text-accent text-xs font-semibold rounded-full border border-accent/30">
-                Puzzle & Training Center
+                {tr('Puzzle & Training Center')}
               </span>
             </div>
-            <h2 className="text-2xl font-bold text-text-primary mb-2">Sharpen your tactical vision</h2>
+            <h2 className="text-2xl font-bold text-text-primary mb-2">{tr('Sharpen your tactical vision')}</h2>
             <p className="text-text-secondary text-sm mb-6">
-              Solve hundreds of verified chess puzzles, climb the puzzle rating leaderboard, and master endgame checkmates.
+              {tr('Solve hundreds of verified chess puzzles, climb the puzzle rating leaderboard, and master endgame checkmates.')}
             </p>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-x-4">
             <Link
               href="/puzzles"
-              className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-xl transition-colors inline-flex items-center space-x-2 shadow-md shadow-accent/20"
+              className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-xl transition-colors inline-flex items-center gap-x-2 shadow-md shadow-accent/20"
             >
-              <span>Solve Puzzles</span>
+              <span>{tr('Solve Puzzles')}</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/learn"
               className="px-6 py-3 bg-background-tertiary hover:bg-background text-text-primary font-medium rounded-xl transition-colors border border-text-secondary/20"
             >
-              Explore Academy
+              {tr('Explore Academy')}
             </Link>
           </div>
         </div>
@@ -156,28 +158,28 @@ export default function HomePage() {
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-text-primary flex items-center gap-2">
               <Award className="w-5 h-5 text-accent" />
-              Top Players
+              {tr('Top Players')}
             </h3>
-            <Link href="/leaderboard" className="text-xs text-accent hover:underline">View All</Link>
+            <Link href="/leaderboard" className="text-xs text-accent hover:underline">{tr('View All')}</Link>
           </div>
           <div className="space-y-3">
             {leaderboardState === 'loading' && (
-              <p className="text-sm text-text-secondary">Loading rankings…</p>
+              <p className="text-sm text-text-secondary">{tr('Loading rankings…')}</p>
             )}
             {leaderboardState === 'error' && (
-              <p className="text-sm text-text-secondary">Rankings available in global leaderboard.</p>
+              <p className="text-sm text-text-secondary">{tr('Rankings available in global leaderboard.')}</p>
             )}
             {leaderboardState === 'ready' && topPlayers.length === 0 && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between p-3 rounded-xl bg-background-tertiary border border-text-secondary/10">
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center gap-x-3">
                     <span className="w-6 text-center font-bold text-sm text-text-secondary">#1</span>
                     <span className="font-medium text-text-primary text-sm">GM Alexander</span>
                   </div>
                   <span className="font-mono font-bold text-accent text-sm">2780</span>
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-xl bg-background-tertiary border border-text-secondary/10">
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center gap-x-3">
                     <span className="w-6 text-center font-bold text-sm text-text-secondary">#2</span>
                     <span className="font-medium text-text-primary text-sm">IM Petrov</span>
                   </div>
@@ -187,7 +189,7 @@ export default function HomePage() {
             )}
             {topPlayers.map((player, index) => (
               <div key={player.username} className="flex items-center justify-between p-3 rounded-xl bg-background-tertiary border border-text-secondary/10">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center gap-x-3">
                   <span className="w-6 text-center font-bold text-sm text-text-secondary">#{index + 1}</span>
                   <span className="font-medium text-text-primary text-sm">{player.username}</span>
                 </div>
@@ -208,6 +210,8 @@ function QuickCard({ title, description, icon: Icon, href, badge }: {
   href: string;
   badge: string;
 }) {
+  const { tr } = useI18n();
+
   return (
     <Link
       href={href}
@@ -226,8 +230,8 @@ function QuickCard({ title, description, icon: Icon, href, badge }: {
         <p className="text-text-secondary text-sm">{description}</p>
       </div>
       <div className="mt-6 flex items-center text-accent text-sm font-semibold group-hover:translate-x-1 transition-transform">
-        <span>Get started</span>
-        <ArrowRight className="w-4 h-4 ml-1.5" />
+        <span>{tr('Get started')}</span>
+        <ArrowRight className="w-4 h-4 ms-1.5" />
       </div>
     </Link>
   );

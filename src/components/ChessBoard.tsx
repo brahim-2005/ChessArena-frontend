@@ -5,6 +5,7 @@ import { Chessboard } from 'react-chessboard';
 import { GameEngine } from '@/lib/chess/game';
 import { formatTime } from '@/lib/utils';
 import { RotateCcw, Undo2, ArrowLeftRight, Flag, MessageSquare } from 'lucide-react';
+import { useI18n } from '@/lib/i18n/context';
 
 interface ChessBoardProps {
   engine: GameEngine;
@@ -45,6 +46,7 @@ export default function ChessBoard({
   whiteRating = 200,
   blackRating = 200,
 }: ChessBoardProps) {
+  const { tr } = useI18n();
   const [orientation, setOrientation] = useState<'white' | 'black'>(initialOrientation);
   const [lastMove, setLastMove] = useState<string | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
@@ -174,13 +176,13 @@ export default function ChessBoard({
 
         {/* Opponent Info Header */}
         <div className="w-full flex items-center justify-between mb-3 bg-background-tertiary px-4 py-2.5 rounded-xl border border-text-secondary/10">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-x-3">
             <div className="w-9 h-9 rounded-full bg-accent/20 text-accent font-bold flex items-center justify-center text-sm">
               {topPlayerName.charAt(0).toUpperCase()}
             </div>
             <div>
               <p className="font-semibold text-sm text-text-primary">{topPlayerName}</p>
-              <p className="text-xs text-text-secondary">Rating: {topPlayerRating}</p>
+              <p className="text-xs text-text-secondary">{tr('Rating')}: {topPlayerRating}</p>
             </div>
           </div>
           {topPlayerTime !== undefined && (
@@ -191,7 +193,7 @@ export default function ChessBoard({
         </div>
 
         {/* Proportional Chessboard Container */}
-        <div className="w-full max-w-[500px] aspect-square relative shadow-2xl rounded-xl overflow-hidden border-2 border-text-secondary/20">
+        <div dir="ltr" className="w-full max-w-[500px] aspect-square relative shadow-2xl rounded-xl overflow-hidden border-2 border-text-secondary/20">
           <Chessboard
             options={{
               position: fen,
@@ -217,13 +219,13 @@ export default function ChessBoard({
 
         {/* Player Info Footer */}
         <div className="w-full flex items-center justify-between mt-3 bg-background-tertiary px-4 py-2.5 rounded-xl border border-text-secondary/10">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-x-3">
             <div className="w-9 h-9 rounded-full bg-accent text-white font-bold flex items-center justify-center text-sm shadow-md shadow-accent/30">
               {bottomPlayerName.charAt(0).toUpperCase()}
             </div>
             <div>
               <p className="font-semibold text-sm text-text-primary">{bottomPlayerName}</p>
-              <p className="text-xs text-text-secondary">Rating: {bottomPlayerRating}</p>
+              <p className="text-xs text-text-secondary">{tr('Rating')}: {bottomPlayerRating}</p>
             </div>
           </div>
           {bottomPlayerTime !== undefined && (
@@ -236,21 +238,21 @@ export default function ChessBoard({
         {/* Check & Game Over Alerts */}
         {check && !gameOver && (
           <div className="mt-3 w-full p-2.5 bg-red-500/20 border border-red-500/40 rounded-xl text-red-300 text-center text-sm font-semibold animate-pulse">
-            ⚠ Check!
+            {tr('Check!')}
           </div>
         )}
 
         {gameOver && (
           <div className="mt-3 w-full p-4 bg-accent/20 border border-accent/50 rounded-xl text-center">
             <h3 className="text-xl font-bold text-accent mb-2">
-              {result === 'white_wins' ? 'White Wins!' :
-               result === 'black_wins' ? 'Black Wins!' : 'Draw Game'}
+              {tr(result === 'white_wins' ? 'White Wins!' :
+               result === 'black_wins' ? 'Black Wins!' : 'Draw Game')}
             </h3>
             <button
               onClick={handleReset}
               className="px-6 py-2.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-xl transition-colors shadow-md shadow-accent/20"
             >
-              New Game
+              {tr('New Game')}
             </button>
           </div>
         )}
@@ -259,8 +261,8 @@ export default function ChessBoard({
         {promotionMove && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="promotion-title">
             <div className="w-full max-w-sm rounded-2xl bg-background-secondary p-6 text-text-primary shadow-2xl border border-text-secondary/20">
-              <h2 id="promotion-title" className="text-lg font-bold">Promote Pawn</h2>
-              <p className="mt-1 text-sm text-text-secondary">Choose a piece for your pawn.</p>
+              <h2 id="promotion-title" className="text-lg font-bold">{tr('Promote Pawn')}</h2>
+              <p className="mt-1 text-sm text-text-secondary">{tr('Choose a piece for your pawn.')}</p>
               <div className="mt-4 grid grid-cols-4 gap-2">
                 {(['q', 'r', 'b', 'n'] as const).map((piece) => (
                   <button
@@ -278,7 +280,7 @@ export default function ChessBoard({
                 ))}
               </div>
               <button onClick={() => setPromotionMove(null)} className="mt-4 w-full rounded-xl px-3 py-2 text-sm text-text-secondary hover:bg-background-tertiary">
-                Cancel
+                {tr('Cancel')}
               </button>
             </div>
           </div>
@@ -289,12 +291,12 @@ export default function ChessBoard({
       <div className="bg-background-secondary rounded-2xl p-6 border border-text-secondary/15 flex flex-col justify-between h-full min-h-[520px] shadow-card">
         <div>
           <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <span>Move History</span>
+            <span>{tr('Move History')}</span>
           </h2>
           {moveHistory.length === 0 ? (
-            <p className="text-sm text-text-secondary italic">No moves played yet.</p>
+            <p className="text-sm text-text-secondary italic">{tr('No moves played yet.')}</p>
           ) : (
-            <ol className="grid grid-cols-2 gap-x-4 gap-y-2 overflow-y-auto max-h-[320px] font-mono text-sm pr-1">
+            <ol className="grid grid-cols-2 gap-x-4 gap-y-2 overflow-y-auto max-h-[320px] font-mono text-sm pe-1">
               {moveHistory.map((move, index) => (
                 <li key={`${move.index}-${move.move}`} className="flex items-center gap-2 bg-background-tertiary px-3 py-1.5 rounded-lg border border-text-secondary/10">
                   <span className="text-text-secondary text-xs">{index % 2 === 0 ? `${Math.floor(index / 2) + 1}.` : ''}</span>
@@ -312,11 +314,11 @@ export default function ChessBoard({
               <button
                 onClick={handleUndo}
                 disabled={moveHistory.length === 0}
-                aria-label="Undo move"
+                aria-label={tr('Undo move')}
                 className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-background-tertiary hover:bg-background text-text-primary text-xs font-semibold rounded-xl border border-text-secondary/20 transition-colors disabled:opacity-50"
               >
                 <Undo2 className="w-4 h-4 text-accent" />
-                <span>Undo</span>
+                <span>{tr('Undo')}</span>
               </button>
             )}
             <button
@@ -324,7 +326,7 @@ export default function ChessBoard({
               className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-background-tertiary hover:bg-background text-text-primary text-xs font-semibold rounded-xl border border-text-secondary/20 transition-colors"
             >
               <ArrowLeftRight className="w-4 h-4 text-accent" />
-              <span>Flip</span>
+              <span>{tr('Flip')}</span>
             </button>
           </div>
           {allowReset && (
@@ -333,7 +335,7 @@ export default function ChessBoard({
               className="w-full flex items-center justify-center gap-2 py-2.5 bg-background-tertiary hover:bg-background text-text-primary text-xs font-semibold rounded-xl border border-text-secondary/20 transition-colors"
             >
               <RotateCcw className="w-4 h-4 text-accent" />
-              <span>Reset Board</span>
+              <span>{tr('Reset Board')}</span>
             </button>
           )}
         </div>

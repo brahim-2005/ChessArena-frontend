@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { TableSkeleton } from '@/components/LoadingSkeleton';
 import { Award, RefreshCw, Trophy } from 'lucide-react';
+import { useI18n } from '@/lib/i18n/context';
 
 interface LeaderboardEntry {
   username: string;
@@ -17,6 +18,7 @@ interface LeaderboardEntry {
 }
 
 export default function LeaderboardPage() {
+  const { tr } = useI18n();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,10 +79,10 @@ export default function LeaderboardPage() {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
             <Trophy className="w-8 h-8 text-yellow-400" />
-            <span>Leaderboard</span>
+            <span>{tr('Leaderboard')}</span>
           </h1>
           <p className="text-text-secondary text-sm mt-1">
-            Top-rated grandmasters and challengers competing on ChessArena.
+            {tr('Top-rated grandmasters and challengers competing on ChessArena.')}
           </p>
         </div>
         <button
@@ -89,18 +91,18 @@ export default function LeaderboardPage() {
           className="px-4 py-2 bg-background-tertiary hover:bg-background text-text-primary text-xs font-semibold rounded-xl border border-text-secondary/20 transition-colors flex items-center gap-2 self-start md:self-auto disabled:opacity-50"
         >
           <RefreshCw className={`w-3.5 h-3.5 text-accent ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
+          <span>{tr('Refresh')}</span>
         </button>
       </div>
 
       {error && (
         <div role="alert" className="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-red-300 flex items-center justify-between">
-          <span>{error}</span>
+          <span>{tr(error)}</span>
           <button
             onClick={() => void loadLeaderboard()}
             className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-xs font-semibold transition-colors"
           >
-            Retry
+            {tr('Retry')}
           </button>
         </div>
       )}
@@ -112,13 +114,13 @@ export default function LeaderboardPage() {
           <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-4">
             <Award className="w-8 h-8 text-accent" />
           </div>
-          <h3 className="text-xl font-bold text-text-primary mb-2">No ranked players yet</h3>
-          <p className="text-text-secondary text-sm mb-6">Be the first to play a match and claim the #1 spot!</p>
+          <h3 className="text-xl font-bold text-text-primary mb-2">{tr('No ranked players yet')}</h3>
+          <p className="text-text-secondary text-sm mb-6">{tr('Be the first to play a match and claim the #1 spot!')}</p>
           <Link
             href="/play"
             className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-xl transition-all shadow-lg shadow-accent/25 inline-flex items-center gap-2 text-sm"
           >
-            <span>Play First Match</span>
+            <span>{tr('Play First Match')}</span>
           </Link>
         </div>
       ) : (
@@ -127,12 +129,12 @@ export default function LeaderboardPage() {
             <table className="min-w-full">
               <thead>
                 <tr className="border-b border-text-secondary/15 bg-background-tertiary/50">
-                  <th className="text-left p-4 text-text-secondary font-semibold text-xs uppercase tracking-wider">Rank</th>
-                  <th className="text-left p-4 text-text-secondary font-semibold text-xs uppercase tracking-wider">Player</th>
-                  <th className="text-center p-4 text-text-secondary font-semibold text-xs uppercase tracking-wider">Rating</th>
-                  <th className="text-center p-4 text-text-secondary font-semibold text-xs uppercase tracking-wider">Games</th>
-                  <th className="text-center p-4 text-text-secondary font-semibold text-xs uppercase tracking-wider">Wins</th>
-                  <th className="text-center p-4 text-text-secondary font-semibold text-xs uppercase tracking-wider">Win Rate</th>
+                  <th className="text-start p-4 text-text-secondary font-semibold text-xs uppercase tracking-wider">{tr('Rank')}</th>
+                  <th className="text-start p-4 text-text-secondary font-semibold text-xs uppercase tracking-wider">{tr('Player')}</th>
+                  <th className="text-center p-4 text-text-secondary font-semibold text-xs uppercase tracking-wider">{tr('Rating')}</th>
+                  <th className="text-center p-4 text-text-secondary font-semibold text-xs uppercase tracking-wider">{tr('Games')}</th>
+                  <th className="text-center p-4 text-text-secondary font-semibold text-xs uppercase tracking-wider">{tr('Wins')}</th>
+                  <th className="text-center p-4 text-text-secondary font-semibold text-xs uppercase tracking-wider">{tr('Win Rate')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-text-secondary/10">
@@ -178,9 +180,9 @@ export default function LeaderboardPage() {
           </div>
 
           <div className="p-4 bg-background-tertiary/30 border-t border-text-secondary/15 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-secondary">
-            <span>Showing top {entries.length} players</span>
+            <span>{tr('Showing top')} {entries.length} {tr('players')}</span>
             <Link href="/play" className="text-accent hover:underline font-semibold flex items-center gap-1">
-              <span>Play online matches to increase your ELO rating</span>
+              <span>{tr('Play online matches to increase your ELO rating')}</span>
               <span>→</span>
             </Link>
           </div>
