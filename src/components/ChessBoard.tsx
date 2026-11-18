@@ -42,8 +42,8 @@ export default function ChessBoard({
   onPositionChange,
   whiteName = 'White Player',
   blackName = 'Black Player',
-  whiteRating = 1200,
-  blackRating = 1200,
+  whiteRating = 200,
+  blackRating = 200,
 }: ChessBoardProps) {
   const [orientation, setOrientation] = useState<'white' | 'black'>(initialOrientation);
   const [lastMove, setLastMove] = useState<string | null>(null);

@@ -89,7 +89,7 @@ export default function ProfilePage() {
         username: profile.username,
         fullName: profile.full_name || '',
         avatarUrl: profile.avatar_url,
-        rating: profile.rating ?? 1200,
+        rating: profile.rating ?? 200,
         gamesPlayed: profile.games_played || 0,
         wins: profile.wins || 0,
         losses: profile.losses || 0,

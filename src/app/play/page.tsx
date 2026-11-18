@@ -30,7 +30,7 @@ function PlayContent() {
   const [humanColor, setHumanColor] = useState<'w' | 'b'>('w');
   const [botDifficulty, setBotDifficulty] = useState<string>(eloParam || 'medium');
   const [botName, setBotName] = useState<string>(botParam ? botParam.charAt(0).toUpperCase() + botParam.slice(1) : 'Computer');
-  const [botElo, setBotElo] = useState<number>(eloParam ? parseInt(eloParam, 10) : 1200);
+  const [botElo, setBotElo] = useState<number>(eloParam ? parseInt(eloParam, 10) : 200);
   const [botThinking, setBotThinking] = useState(false);
   const botRequestRef = useRef(0);
   const [timeControl, setTimeControl] = useState('3+2');
@@ -357,8 +357,8 @@ function PlayContent() {
             isInputEnabled={!botThinking && (localOpponent === 'hotseat' || gameEngine.turn === humanColor)}
             whiteName={humanColor === 'w' ? (user?.email || 'Player') : botName}
             blackName={humanColor === 'b' ? (user?.email || 'Player') : botName}
-            whiteRating={humanColor === 'w' ? 1200 : botElo}
-            blackRating={humanColor === 'b' ? 1200 : botElo}
+            whiteRating={humanColor === 'w' ? 200 : botElo}
+            blackRating={humanColor === 'b' ? 200 : botElo}
             initialOrientation={humanColor === 'w' ? 'white' : 'black'}
           />
         </div>
