@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint src",
     "test": "jest --runInBand",
+    "academy:seed:generate": "node scripts/generate_academy_level1_seed.mjs",
     "db:migrate": "node scripts/migrate.js",
     "socket": "node server/socket.js"
   },
