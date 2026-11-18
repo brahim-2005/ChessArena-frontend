@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Bot, ArrowRight, Zap, Target, Award } from 'lucide-react';
+import { Bot, ArrowRight } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
 
 interface BotProfile {
   id: string;
   name: string;
   difficulty: string;
+  level: 'easy' | 'intermediate' | 'advanced';
   elo: number;
   style: string;
   avatar: string;
@@ -16,25 +17,38 @@ interface BotProfile {
 }
 
 const BOT_LIST: BotProfile[] = [
-  { id: 'martin', name: 'Martin', difficulty: 'Beginner', elo: 100, style: 'Beginner Bot', avatar: '👶', description: 'Friendly and learning the rules.' },
-  { id: 'simon', name: 'Simon', difficulty: 'Easy', elo: 300, style: 'Defensive Bot', avatar: '🛡️', description: 'Focuses on keeping his pieces safe.' },
-  { id: 'pos', name: 'Positional', difficulty: 'Casual', elo: 500, style: 'Positional Bot', avatar: '♟️', description: 'Likes to control center squares.' },
-  { id: 'agg', name: 'Aggressive', difficulty: 'Novice', elo: 700, style: 'Aggressive Bot', avatar: '🔥', description: 'Attacks early and often.' },
-  { id: 'tactic', name: 'Tactical', difficulty: 'Intermediate', elo: 900, style: 'Tactical Bot', avatar: '⚡', description: 'Looks for simple forks and pins.' },
-  { id: 'skilled', name: 'Nelson', difficulty: 'Skilled', elo: 1100, style: 'Advanced Bot', avatar: '🎯', description: 'Solid foundational play.' },
-  { id: 'adv', name: 'Antonio', difficulty: 'Advanced', elo: 1300, style: 'Tactical Master', avatar: '🦊', description: 'Calculates sharp tactical lines.' },
-  { id: 'expert', name: 'Wally', difficulty: 'Expert', elo: 1500, style: 'Expert Bot', avatar: '🧙‍♂️', description: 'Experienced tournament player.' },
-  { id: 'master', name: 'Master', difficulty: 'Master', elo: 1800, style: 'Master Bot', avatar: '👑', description: 'Strong positional understanding.' },
-  { id: 'gm', name: 'Grandmaster', difficulty: 'Grandmaster', elo: 2200, style: 'Grandmaster', avatar: '🏆', description: 'Professional FIDE Grandmaster level.' },
-  { id: 'elite', name: 'Elite Bot', difficulty: 'Elite', elo: 2500, style: 'Elite Specialist', avatar: '💎', description: 'Flawless calculation and endgame mastery.' },
-  { id: 'legend', name: 'Legendary', difficulty: 'Legendary', elo: 2800, style: 'Legendary AI', avatar: '🐉', description: 'Maximum engine depth and supreme skill.' },
+  { id: 'martin', name: 'Martin', difficulty: 'Beginner', level: 'easy', elo: 100, style: 'Beginner Bot', avatar: '👶', description: 'Friendly and learning the rules.' },
+  { id: 'simon', name: 'Simon', difficulty: 'Easy', level: 'easy', elo: 300, style: 'Defensive Bot', avatar: '🛡️', description: 'Focuses on keeping his pieces safe.' },
+  { id: 'pos', name: 'Positional', difficulty: 'Casual', level: 'intermediate', elo: 500, style: 'Positional Bot', avatar: '♟️', description: 'Likes to control center squares.' },
+  { id: 'agg', name: 'Aggressive', difficulty: 'Novice', level: 'intermediate', elo: 700, style: 'Aggressive Bot', avatar: '🔥', description: 'Attacks early and often.' },
+  { id: 'tactic', name: 'Tactical', difficulty: 'Intermediate', level: 'intermediate', elo: 900, style: 'Tactical Bot', avatar: '⚡', description: 'Looks for simple forks and pins.' },
+  { id: 'skilled', name: 'Nelson', difficulty: 'Skilled', level: 'advanced', elo: 1100, style: 'Advanced Bot', avatar: '🎯', description: 'Solid foundational play.' },
+  { id: 'adv', name: 'Antonio', difficulty: 'Advanced', level: 'advanced', elo: 1300, style: 'Tactical Master', avatar: '🦊', description: 'Calculates sharp tactical lines.' },
+  { id: 'expert', name: 'Wally', difficulty: 'Expert', level: 'advanced', elo: 1500, style: 'Expert Bot', avatar: '🧙‍♂️', description: 'Experienced tournament player.' },
+  { id: 'master', name: 'Master', difficulty: 'Master', level: 'advanced', elo: 1800, style: 'Master Bot', avatar: '👑', description: 'Strong positional understanding.' },
+  { id: 'gm', name: 'Grandmaster', difficulty: 'Grandmaster', level: 'advanced', elo: 2200, style: 'Grandmaster', avatar: '🏆', description: 'Finds longer tactical sequences and keeps pressure in complex positions.' },
+  { id: 'elite', name: 'Elite Bot', difficulty: 'Elite', level: 'advanced', elo: 2500, style: 'Elite Specialist', avatar: '💎', description: 'Deep search with a strong focus on tactics and endgames.' },
+  { id: 'legend', name: 'Legendary', difficulty: 'Legendary', level: 'advanced', elo: 2800, style: 'Legendary AI', avatar: '🐉', description: 'The deepest local search and toughest practice challenge.' },
 ];
 
 export default function PlayBotsPage() {
   const [filter, setFilter] = useState('All');
-  const { tr } = useI18n();
+  const { tr, language } = useI18n();
 
-  const filteredBots = filter === 'All' ? BOT_LIST : BOT_LIST.filter(b => b.difficulty === filter);
+  const filteredBots = filter === 'All'
+    ? BOT_LIST
+    : BOT_LIST.filter((bot) => bot.level === filter);
+  const levelLabels = {
+    en: { All: 'All', easy: 'Easy', intermediate: 'Intermediate', advanced: 'Advanced' },
+    fr: { All: 'Tous', easy: 'Facile', intermediate: 'Intermédiaire', advanced: 'Avancé' },
+    ar: { All: 'الكل', easy: 'سهل', intermediate: 'متوسط', advanced: 'متقدم' },
+  }[language];
+  const levelDescription = {
+    en: 'Choose Easy, Intermediate, or Advanced. Displayed ELOs are rough estimates; higher levels search deeper and make fewer blunders.',
+    fr: 'Choisissez Facile, Intermédiaire ou Avancé. Les Elo affichés sont des estimations ; les niveaux supérieurs calculent plus loin et commettent moins d’erreurs.',
+    ar: 'اختر سهل أو متوسط أو متقدم. تصنيفات Elo تقريبية، والمستويات الأعلى تحسب نقلات أكثر وتقل أخطاؤها.',
+  }[language];
+  const filters = ['All', 'easy', 'intermediate', 'advanced'] as const;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 text-text-primary">
@@ -47,13 +61,13 @@ export default function PlayBotsPage() {
             </span>
           </div>
           <h1 className="text-3xl font-bold md:text-4xl">{tr('Play Against Chess Bots')}</h1>
-          <p className="mt-1 text-text-secondary">{tr('Choose from 12 difficulty tiers ranging from 100 ELO to 2800+ Grandmaster AI.')}</p>
+          <p className="mt-1 text-text-secondary">{levelDescription}</p>
         </div>
       </header>
 
       {/* Filter Tabs */}
       <div className="flex overflow-x-auto gap-2 pb-4 mb-8 no-scrollbar">
-        {['All', 'Beginner', 'Easy', 'Casual', 'Intermediate', 'Advanced', 'Expert', 'Master', 'Grandmaster'].map((f) => (
+        {filters.map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -63,7 +77,7 @@ export default function PlayBotsPage() {
                 : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary hover:text-text-primary border border-text-secondary/10'
             }`}
           >
-            {tr(f)}
+            {levelLabels[f]}
           </button>
         ))}
       </div>
@@ -82,9 +96,9 @@ export default function PlayBotsPage() {
                 </span>
                 <div className="text-end">
                   <span className="text-xs px-2.5 py-1 rounded-full bg-accent/10 text-accent font-mono font-bold border border-accent/20">
-                    {bot.elo} ELO
+                    ~{bot.elo} ELO
                   </span>
-                  <p className="text-xs text-text-secondary mt-1">{tr(bot.difficulty)}</p>
+                  <p className="text-xs text-text-secondary mt-1">{levelLabels[bot.level]} · {tr(bot.difficulty)}</p>
                 </div>
               </div>
               <h3 className="text-xl font-bold text-text-primary mb-1 group-hover:text-accent transition-colors">

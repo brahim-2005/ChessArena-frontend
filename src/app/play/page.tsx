@@ -229,7 +229,7 @@ function PlayContent() {
           </div>
           <h1 className="text-3xl font-bold md:text-4xl">
             {effectiveMode === 'local' && localOpponent === 'bot'
-              ? `${tr('Playing vs')} ${botName} (${botElo} ELO)`
+              ? `${tr('Playing vs')} ${botName} (~${botElo} ELO)`
               : tr('Chess Arena Online')}
           </h1>
           <p className="mt-1 text-text-secondary">
@@ -326,7 +326,7 @@ function PlayContent() {
               </div>
               <div>
                 <h3 className="font-bold text-text-primary">
-                  {localOpponent === 'bot' ? `${botName} (${botElo} ELO)` : tr('Hotseat Two Player')}
+                  {localOpponent === 'bot' ? `${botName} (~${botElo} ELO)` : tr('Hotseat Two Player')}
                 </h3>
                 <p className="text-xs text-text-secondary">
                   {localOpponent === 'bot'

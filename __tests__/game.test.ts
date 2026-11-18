@@ -33,6 +33,23 @@ describe('GameEngine', () => {
       expect(game.isCheckmate).toBe(true);
     });
 
+    it('uses the advanced search to take a free rook', async () => {
+      const position = 'k7/8/8/8/8/8/6r1/4K2Q w - - 0 1';
+      const move = await chooseBotMoveAsync(position, 'w', 'advanced');
+      expect(move).toMatchObject({ from: 'h1', to: 'g2' });
+    });
+
+    it('keeps all three named difficulty settings legal', async () => {
+      const position = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1';
+      for (const difficulty of ['easy', 'intermediate', 'advanced']) {
+        const move = await chooseBotMoveAsync(position, 'b', difficulty);
+        expect(move).not.toBeNull();
+        if (move) {
+          expect(new GameEngine(position).moveFromSquares(move.from, move.to, move.promotion).success).toBe(true);
+        }
+      }
+    });
+
     it('can cancel a computer search between candidate moves', async () => {
       const move = await chooseBotMoveAsync(
         'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1',
