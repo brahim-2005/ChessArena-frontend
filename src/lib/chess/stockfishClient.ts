@@ -8,6 +8,8 @@ import {
 const ENGINE_WASM_URL = '/stockfish/stockfish-19-single.wasm';
 const ENGINE_WORKER_URL = '/stockfish/stockfish-19-single.js';
 const INITIALIZATION_TIMEOUT_MS = 30_000;
+const PROGRESS_REPORT_INTERVAL_MS = 500;
+const PROGRESS_REPORT_BYTES = 2 * 1024 * 1024;
 
 export interface StockfishProgress {
   loadedBytes: number;
@@ -57,17 +59,33 @@ async function preloadEngineWasm(
   const totalBytes = Number(response.headers.get('content-length')) || null;
   const reader = response.body.getReader();
   let loadedBytes = 0;
-  onProgress?.({ loadedBytes, totalBytes, phase: 'download' });
+  let lastReportedBytes = 0;
+  let lastReportedAt = 0;
+  const reportProgress = (force = false) => {
+    const now = Date.now();
+    if (
+      !force
+      && loadedBytes - lastReportedBytes < PROGRESS_REPORT_BYTES
+      && now - lastReportedAt < PROGRESS_REPORT_INTERVAL_MS
+    ) {
+      return;
+    }
+    onProgress?.({ loadedBytes, totalBytes, phase: 'download' });
+    lastReportedBytes = loadedBytes;
+    lastReportedAt = now;
+  };
+  reportProgress(true);
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       loadedBytes += value.byteLength;
-      onProgress?.({ loadedBytes, totalBytes, phase: 'download' });
+      reportProgress();
     }
   } finally {
     reader.releaseLock();
   }
+  reportProgress(true);
 }
 
 export class StockfishClient {

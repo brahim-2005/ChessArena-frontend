@@ -17,7 +17,7 @@ import {
 } from '@/lib/chess/botProfiles';
 import { saveBotGame, type BotGameRecord } from '@/lib/chess/botGameHistory';
 import { getCurrentTimeMs, parseTimeControl } from '@/lib/utils';
-import type { StockfishProgress } from '@/lib/chess/stockfishClient';
+import { getStockfishClient, type StockfishProgress } from '@/lib/chess/stockfishClient';
 import { createGame, GameEngine } from '@/lib/chess/game';
 import { Bot, User, ArrowLeft, RotateCcw, UserPlus, History } from 'lucide-react';
 import type { TranslationKey } from '@/lib/i18n/translations';
@@ -91,6 +91,27 @@ function PlayContent() {
   const runBotTurnRef = useRef<((engine: GameEngine, color: 'w' | 'b', difficulty: BotProfileId) => Promise<void>) | null>(null);
   const finishLocalGameRef = useRef<((engine: GameEngine, result: 'white_wins' | 'black_wins' | 'draw', reason: 'checkmate' | 'draw' | 'timeout') => void) | null>(null);
   const effectiveMode = !authLoading && !user ? 'local' : mode;
+
+  useEffect(() => {
+    if (modeParam !== 'bot') return;
+    let active = true;
+    void getStockfishClient((progress) => {
+      if (active) setEngineProgress(progress);
+    }).then(() => {
+      if (active) {
+        setEngineLoaded(true);
+        setEngineProgress(null);
+      }
+    }).catch((engineError: unknown) => {
+      if (active) {
+        setEngineProgress(null);
+        setError(engineError instanceof Error ? engineError.message : t('botEngineFailure'));
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [modeParam, t]);
 
   // Poll for incoming invitations count badge
   useEffect(() => {
@@ -318,10 +339,13 @@ function PlayContent() {
       const elapsed = (now - lastClockTickRef.current) / 1000;
       lastClockTickRef.current = now;
       const activeColor = gameEngine.turn;
+      const previousDisplayedTime = Math.ceil(clocksRef.current[activeColor]);
       const remaining = Math.max(0, clocksRef.current[activeColor] - elapsed);
       const nextClocks = { ...clocksRef.current, [activeColor]: remaining };
       clocksRef.current = nextClocks;
-      setClocks(nextClocks);
+      if (Math.ceil(remaining) !== previousDisplayedTime || remaining <= 0) {
+        setClocks(nextClocks);
+      }
 
       if (remaining <= 0) {
         const winner = activeColor === 'w' ? 'black_wins' : 'white_wins';
@@ -522,7 +546,7 @@ function PlayContent() {
             </div>
 
             <div className="flex items-center gap-3">
-              {botThinking && (
+              {(botThinking || (engineProgress !== null && !engineLoaded)) && (
                 <span role="status" className="max-w-64 rounded-lg bg-accent/20 px-3 py-1.5 text-xs font-semibold text-accent">
                   {engineProgress?.phase === 'download'
                     ? `${t('botEngineDownloading')} ${engineProgress.totalBytes
