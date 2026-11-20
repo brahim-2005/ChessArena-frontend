@@ -4,7 +4,7 @@ A chess platform project with local play, Supabase-backed account flows, and dat
 
 ## Features
 
-- **Local chess**: Play against a local computer opponent or a two-player hot-seat game without an account. The board supports legal-move hints, click or drag moves, move history, undo, castling, en passant, and a choice of promotion piece. Computer levels use a lightweight in-browser search, not a remote engine.
+- **Local chess**: Play against a local computer opponent or a two-player hot-seat game without an account. The board supports legal-move hints, click or drag moves, move history, undo, castling, en passant, and a choice of promotion piece. Computer games use Stockfish 19 in a browser worker, with nine approximate difficulty tiers, clocks, and locally saved game history and analysis.
 - **Accounts**: Supabase email/password sign-up, sign-in, and password reset
 - **Player features**: Database-backed profiles, game history, private settings, public chess clubs with owner-managed membership, and a leaderboard updated transactionally when online games finish
 - **Matchmaking**: Authenticated database queue and server-validated game moves; completed online games update player records and Elo ratings exactly once (requires the latest migration)
@@ -15,13 +15,15 @@ A chess platform project with local play, Supabase-backed account flows, and dat
 
 - **Frontend**: Next.js, React, TypeScript, Tailwind CSS
 - **Backend**: Supabase (PostgreSQL + Auth)
-- **Chess Engine**: chess.js
+- **Chess Engine**: Stockfish 19 (GPL-3.0) for computer play, with chess.js validating legal moves
 - **Multiplayer**: Database matchmaking and HTTP move synchronization; the standalone Socket.IO service is not currently connected to the web game flow
 - **Hosting**: Vercel for frontend, Supabase for backend
 
 ## Quick Start
 
 Requires Node.js 20.9 or newer.
+
+The full single-threaded Stockfish WebAssembly engine is copied into `public/stockfish/` during install/build (about 99 MB). Stockfish is GPL-3.0 licensed; review its license and source-distribution obligations before distributing a production build.
 
 ```bash
 # Install dependencies

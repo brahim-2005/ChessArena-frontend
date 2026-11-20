@@ -34,6 +34,10 @@ export function formatDate(dateString: string): string {
   }).format(date);
 }
 
+export function getCurrentTimeMs(): number {
+  return Date.now();
+}
+
 export function parseTimeControl(control: string): { initial: number; increment: number } {
   const match = /^(\d{1,3})\+(\d{1,3})$/.exec(control);
   if (!match) {

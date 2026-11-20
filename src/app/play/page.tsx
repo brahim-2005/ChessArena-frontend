@@ -4,56 +4,93 @@ import { useEffect, useRef, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
+import { useI18n } from '@/lib/i18n/context';
 import ChessBoard from '@/components/ChessBoard';
 import PlayAFriendModal from '@/components/PlayAFriendModal';
-import { chooseBotMoveAsync } from '@/lib/chess/bot';
+import { chooseStockfishMove } from '@/lib/chess/stockfishBot';
+import {
+  BOT_PROFILE_NAME_KEYS,
+  BOT_TIME_CONTROLS,
+  getBotProfile,
+  type BotFormat,
+  type BotProfileId,
+} from '@/lib/chess/botProfiles';
+import { saveBotGame, type BotGameRecord } from '@/lib/chess/botGameHistory';
+import { getCurrentTimeMs, parseTimeControl } from '@/lib/utils';
+import type { StockfishProgress } from '@/lib/chess/stockfishClient';
 import { createGame, GameEngine } from '@/lib/chess/game';
-import { Bot, User, ArrowLeft, RotateCcw, UserPlus, Sparkles } from 'lucide-react';
-import { useI18n } from '@/lib/i18n/context';
+import { Bot, User, ArrowLeft, RotateCcw, UserPlus, History } from 'lucide-react';
+import type { TranslationKey } from '@/lib/i18n/translations';
 
 const TIME_CONTROLS = ['1+0', '3+0', '3+2', '5+0', '10+0', '10+5', '15+10'];
+const FORMAT_KEYS: Record<BotFormat, TranslationKey> = {
+  bullet: 'formatBullet',
+  blitz: 'formatBlitz',
+  rapid: 'formatRapid',
+  classical: 'formatClassical',
+};
 
 type MatchStatus = 'idle' | 'queued';
 type LocalOpponent = 'bot' | 'hotseat';
+type Clocks = { w: number; b: number };
+
+function getInitialBotFormat(value: string | null): BotFormat {
+  return value === 'bullet' || value === 'blitz' || value === 'rapid' || value === 'classical'
+    ? value
+    : 'blitz';
+}
+
+function getInitialTimeControl(value: string | null, format: BotFormat): string {
+  return value && BOT_TIME_CONTROLS[format].includes(value)
+    ? value
+    : BOT_TIME_CONTROLS[format][0] ?? '3+0';
+}
 
 function PlayContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
-  const { tr } = useI18n();
 
   const modeParam = searchParams.get('mode');
   const botParam = searchParams.get('bot');
-  const eloParam = searchParams.get('elo');
+  const initialFormat = getInitialBotFormat(searchParams.get('format'));
+  const initialTimeControl = modeParam === 'bot'
+    ? getInitialTimeControl(searchParams.get('tc'), initialFormat)
+    : '3+2';
+  const initialBotId: BotProfileId = getBotProfile(botParam)?.id ?? 'casual';
 
   const [gameEngine, setGameEngine] = useState<GameEngine | null>(() => createGame());
   const [mode, setMode] = useState<'online' | 'local'>(modeParam === 'bot' ? 'local' : 'online');
   const [localOpponent, setLocalOpponent] = useState<LocalOpponent>(modeParam === 'bot' ? 'bot' : 'bot');
-  const [humanColor, setHumanColor] = useState<'w' | 'b'>('w');
-  const [botDifficulty, setBotDifficulty] = useState<string>(eloParam || 'medium');
-  const [botName, setBotName] = useState<string>(botParam ? botParam.charAt(0).toUpperCase() + botParam.slice(1) : 'Computer');
-  const [botElo, setBotElo] = useState<number>(eloParam ? parseInt(eloParam, 10) : 200);
+  const [humanColor, setHumanColor] = useState<'w' | 'b'>(() => searchParams.get('color') === 'b' ? 'b' : 'w');
+  const [botDifficulty, setBotDifficulty] = useState<BotProfileId>(initialBotId);
+  const { t, tr } = useI18n();
+  const botName = t(BOT_PROFILE_NAME_KEYS[botDifficulty]);
+  const botElo = getBotProfile(botDifficulty)?.elo ?? 1000;
   const [botThinking, setBotThinking] = useState(false);
   const botRequestRef = useRef(0);
-  const [timeControl, setTimeControl] = useState('3+2');
+  const [timeControl, setTimeControl] = useState(initialTimeControl);
+  const format = initialFormat;
+  const initialSeconds = parseTimeControl(initialTimeControl).initial;
+  const [clocks, setClocks] = useState<Clocks>({ w: initialSeconds, b: initialSeconds });
+  const clocksRef = useRef<Clocks>({ w: initialSeconds, b: initialSeconds });
+  const lastClockTickRef = useRef(0);
+  const gameStartedAtRef = useRef(0);
+  const gameCompletionRef = useRef(false);
+  const [finishedGame, setFinishedGame] = useState<BotGameRecord | null>(null);
+  const [timeoutWinner, setTimeoutWinner] = useState<'white_wins' | 'black_wins' | null>(null);
+  const [engineProgress, setEngineProgress] = useState<StockfishProgress | null>(null);
+  const [engineLoaded, setEngineLoaded] = useState(false);
   const [matchStatus, setMatchStatus] = useState<MatchStatus>('idle');
   const [matching, setMatching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [isPlayAFriendOpen, setIsPlayAFriendOpen] = useState(false);
   const [incomingInvitesCount, setIncomingInvitesCount] = useState(0);
-
-  useEffect(() => {
-    if (modeParam === 'bot' && botParam) {
-      setMode('local');
-      setLocalOpponent('bot');
-      if (eloParam) {
-        setBotDifficulty(eloParam);
-        setBotElo(parseInt(eloParam, 10));
-      }
-      setBotName(botParam.charAt(0).toUpperCase() + botParam.slice(1));
-    }
-  }, [modeParam, botParam, eloParam]);
+  const initialBotTurnStartedRef = useRef(false);
+  const runBotTurnRef = useRef<((engine: GameEngine, color: 'w' | 'b', difficulty: BotProfileId) => Promise<void>) | null>(null);
+  const finishLocalGameRef = useRef<((engine: GameEngine, result: 'white_wins' | 'black_wins' | 'draw', reason: 'checkmate' | 'draw' | 'timeout') => void) | null>(null);
+  const effectiveMode = !authLoading && !user ? 'local' : mode;
 
   // Poll for incoming invitations count badge
   useEffect(() => {
@@ -66,7 +103,7 @@ function PlayContent() {
         if (active && response.ok) {
           setIncomingInvitesCount((payload.received || []).length);
         }
-      } catch (err) {
+      } catch {
         // silent
       }
     };
@@ -109,56 +146,190 @@ function PlayContent() {
     };
   }, [matchStatus, router, user]);
 
-  const runBotTurn = async (engine: GameEngine, playerColor: 'w' | 'b', difficulty: string) => {
+  function finishLocalGame(
+    engine: GameEngine,
+    resultCode: 'white_wins' | 'black_wins' | 'draw',
+    endReason: 'checkmate' | 'draw' | 'timeout',
+  ) {
+    if (gameCompletionRef.current || localOpponent !== 'bot') return;
+    gameCompletionRef.current = true;
+    if (endReason === 'timeout') setTimeoutWinner(resultCode === 'draw' ? null : resultCode);
+    const sanMoves = engine.moveHistory.map((move) => move.move);
+    const uciMoves = engine.moveHistory.map((move) =>
+      `${move.from}${move.to}${move.promotion ?? ''}`,
+    );
+    const playerWon = resultCode === (humanColor === 'w' ? 'white_wins' : 'black_wins');
+    const record: BotGameRecord = {
+      id: globalThis.crypto.randomUUID(),
+      botId: botDifficulty,
+      botElo,
+      format,
+      timeControl,
+      playerColor: humanColor,
+      result: resultCode === 'draw' ? 'draw' : playerWon ? 'win' : 'loss',
+      endReason,
+      playedAt: new Date().toISOString(),
+      durationSeconds: Math.max(0, Math.floor((getCurrentTimeMs() - gameStartedAtRef.current) / 1000)),
+      pgn: `${sanMoves.map((move, index) => index % 2 === 0 ? `${Math.floor(index / 2) + 1}. ${move}` : move).join(' ')} ${resultCode === 'draw' ? '1/2-1/2' : resultCode === 'white_wins' ? '1-0' : '0-1'}`.trim(),
+      uciMoves,
+      sanMoves,
+    };
+    setFinishedGame(record);
+    try {
+      saveBotGame(record);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'The game finished, but its history could not be saved.');
+    }
+  }
+
+  async function runBotTurn(engine: GameEngine, playerColor: 'w' | 'b', difficulty: BotProfileId) {
     const requestId = ++botRequestRef.current;
     setBotThinking(true);
+    setEngineProgress(null);
     setError(null);
     try {
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 400));
-      if (botRequestRef.current !== requestId) return;
       const botColor = playerColor === 'w' ? 'b' : 'w';
-      const move = await chooseBotMoveAsync(engine.fen, botColor, difficulty, () => botRequestRef.current !== requestId);
+      const move = await chooseStockfishMove({
+        fen: engine.fen,
+        color: botColor,
+        profileId: difficulty,
+        format,
+        moveHistory: engine.moveHistory.map((item) =>
+          `${item.from}${item.to}${item.promotion ?? ''}`,
+        ),
+        isCancelled: () => botRequestRef.current !== requestId,
+        onProgress: (progress) => {
+          setEngineProgress(progress);
+          if (progress.phase === 'engine') setEngineLoaded(true);
+        },
+      });
       if (botRequestRef.current !== requestId) return;
       if (!move) {
-        if (!engine.gameOver) setError('The computer could not find a legal move.');
+        if (!engine.gameOver) setError(t('botEngineFailure'));
         return;
       }
 
       const result = engine.moveFromSquares(move.from, move.to, move.promotion);
       if (!result.success) {
-        setError('The computer returned an invalid move. Start a new game to continue.');
+        setError('Stockfish returned an illegal move. Start a new game to continue.');
         return;
       }
+      handleGameMove(engine);
     } catch (botError) {
       if (botRequestRef.current === requestId) {
         console.error('Computer move search failed:', botError);
-        setError(botError instanceof Error ? botError.message : 'The computer could not calculate a move.');
+        setError(botError instanceof Error ? botError.message : t('botEngineFailure'));
       }
     } finally {
       if (botRequestRef.current === requestId) setBotThinking(false);
     }
-  };
+  }
+
+  function handleGameMove(engine: GameEngine) {
+    const movedColor = engine.turn === 'w' ? 'b' : 'w';
+    const increment = parseTimeControl(timeControl).increment;
+    const updatedClocks = {
+      ...clocksRef.current,
+      [movedColor]: clocksRef.current[movedColor] + increment,
+    };
+    clocksRef.current = updatedClocks;
+    setClocks(updatedClocks);
+    lastClockTickRef.current = getCurrentTimeMs();
+
+    if (engine.gameOver) {
+      const result = engine.result ?? 'draw';
+      finishLocalGame(engine, result, result === 'draw' ? 'draw' : 'checkmate');
+      return;
+    }
+    if (localOpponent === 'bot' && engine.turn !== humanColor) {
+      void runBotTurn(engine, humanColor, botDifficulty);
+    }
+  }
 
   const handleLocalMove = () => {
-    if (!gameEngine) return;
-    if (localOpponent === 'bot' && gameEngine.turn !== humanColor && !gameEngine.gameOver) {
-      void runBotTurn(gameEngine, humanColor, botDifficulty);
-    }
+    if (gameEngine) handleGameMove(gameEngine);
   };
 
-  const startLocalGame = (opponent: LocalOpponent, color = humanColor, difficulty = botDifficulty) => {
+  const startLocalGame = (
+    opponent: LocalOpponent,
+    color: 'w' | 'b' = humanColor,
+    difficulty: BotProfileId = botDifficulty,
+  ) => {
     botRequestRef.current += 1;
     setLocalOpponent(opponent);
     setHumanColor(color);
     setBotDifficulty(difficulty);
     setError(null);
     setBotThinking(false);
+    setEngineProgress(null);
+    setFinishedGame(null);
+    setTimeoutWinner(null);
+    gameCompletionRef.current = false;
+    gameStartedAtRef.current = getCurrentTimeMs();
+    lastClockTickRef.current = getCurrentTimeMs();
+    const initialTime = parseTimeControl(timeControl).initial;
+    const nextClocks = { w: initialTime, b: initialTime };
+    clocksRef.current = nextClocks;
+    setClocks(nextClocks);
     const newGame = createGame();
     setGameEngine(newGame);
     if (opponent === 'bot' && color === 'b') {
+      initialBotTurnStartedRef.current = true;
       void runBotTurn(newGame, color, difficulty);
     }
   };
+
+  useEffect(() => {
+    runBotTurnRef.current = runBotTurn;
+    finishLocalGameRef.current = finishLocalGame;
+  });
+
+  useEffect(() => {
+    if (
+      modeParam !== 'bot'
+      || humanColor !== 'b'
+      || !gameEngine
+      || gameEngine.moveHistory.length > 0
+      || initialBotTurnStartedRef.current
+    ) {
+      return;
+    }
+    initialBotTurnStartedRef.current = true;
+    void runBotTurnRef.current?.(gameEngine, humanColor, botDifficulty);
+  }, [botDifficulty, gameEngine, humanColor, modeParam]);
+
+  useEffect(() => {
+    if (
+      effectiveMode !== 'local'
+      || localOpponent !== 'bot'
+      || !gameEngine
+      || finishedGame
+      || gameEngine.gameOver
+    ) {
+      return;
+    }
+
+    const startedAt = getCurrentTimeMs();
+    if (gameStartedAtRef.current === 0) gameStartedAtRef.current = startedAt;
+    lastClockTickRef.current = startedAt;
+    const timer = window.setInterval(() => {
+      if (gameCompletionRef.current) return;
+      const now = getCurrentTimeMs();
+      const elapsed = (now - lastClockTickRef.current) / 1000;
+      lastClockTickRef.current = now;
+      const activeColor = gameEngine.turn;
+      const remaining = Math.max(0, clocksRef.current[activeColor] - elapsed);
+      const nextClocks = { ...clocksRef.current, [activeColor]: remaining };
+      clocksRef.current = nextClocks;
+      setClocks(nextClocks);
+
+      if (remaining <= 0) {
+        const winner = activeColor === 'w' ? 'black_wins' : 'white_wins';
+        finishLocalGameRef.current?.(gameEngine, winner, 'timeout');
+      }
+    }, 250);
+    return () => window.clearInterval(timer);
+  }, [effectiveMode, finishedGame, gameEngine, localOpponent]);
 
   const handleJoinMatch = async () => {
     setMatching(true);
@@ -209,10 +380,8 @@ function PlayContent() {
   };
 
   if (authLoading) {
-    return <p role="status" className="p-8 text-center text-text-secondary">{tr('Loading account…')}</p>;
+    return <p role="status" className="p-8 text-center text-text-secondary">Loading account…</p>;
   }
-
-  const effectiveMode = !authLoading && !user ? 'local' : mode;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 text-text-primary">
@@ -224,29 +393,45 @@ function PlayContent() {
               className="px-3 py-1 bg-background-secondary hover:bg-background-tertiary text-text-secondary hover:text-text-primary text-xs font-semibold rounded-full border border-text-secondary/15 flex items-center gap-1.5 transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              {tr(modeParam === 'bot' ? 'Back to Bot Arena' : 'Game Modes')}
+              {modeParam === 'bot' ? t('botArenaTitle') : tr('Game Modes')}
             </Link>
           </div>
           <h1 className="text-3xl font-bold md:text-4xl">
-            {effectiveMode === 'local' && localOpponent === 'bot'
-              ? `${tr('Playing vs')} ${botName} (~${botElo} ELO)`
-              : tr('Chess Arena Online')}
+            {effectiveMode === 'local' && localOpponent === 'bot' ? `${botName} (${botElo} ELO)` : 'Chess Arena Online'}
           </h1>
           <p className="mt-1 text-text-secondary">
             {effectiveMode === 'local' && localOpponent === 'bot'
-              ? tr('Test your tactical skills against our advanced chess bot engine.')
-              : tr('Challenge players worldwide in real-time ranked matches.')}
+              ? t('botApproximateElo')
+              : 'Challenge players worldwide in real-time ranked matches.'}
           </p>
         </div>
 
         <div className="flex flex-wrap gap-3">
+          {effectiveMode === 'local' && localOpponent === 'bot' && (
+            <Link
+              href="/play/bots"
+              className="inline-flex items-center gap-2 rounded-xl border border-text-secondary/20 bg-background-secondary px-4 py-2.5 text-sm font-semibold hover:border-accent/50 hover:text-accent"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {t('botChangeOpponent')}
+            </Link>
+          )}
+          {effectiveMode === 'local' && localOpponent === 'bot' && (
+            <Link
+              href="/play/bots/history"
+              className="inline-flex items-center gap-2 rounded-xl border border-text-secondary/20 bg-background-secondary px-4 py-2.5 text-sm font-semibold hover:border-accent/50 hover:text-accent"
+            >
+              <History className="h-4 w-4" />
+              {t('botHistory')}
+            </Link>
+          )}
           {user && (
             <button
               onClick={() => setIsPlayAFriendOpen(true)}
               className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-bold rounded-xl transition-all shadow-lg shadow-accent/25 flex items-center gap-2 text-sm relative"
             >
               <UserPlus className="w-4 h-4" />
-              <span>{tr('PLAY A FRIEND')}</span>
+              <span>PLAY A FRIEND</span>
               {incomingInvitesCount > 0 && (
                 <span className="absolute -top-1.5 -end-1.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow animate-bounce">
                   {incomingInvitesCount}
@@ -261,7 +446,7 @@ function PlayContent() {
               className="px-4 py-2.5 bg-background-secondary hover:bg-background-tertiary text-text-primary font-semibold rounded-xl border border-text-secondary/15 transition-colors text-sm flex items-center gap-2"
             >
               <User className="w-4 h-4 text-accent" />
-              <span>{tr(mode === 'online' ? 'Switch to Bot / Local' : 'Switch to Online Matchmaking')}</span>
+              <span>{mode === 'online' ? 'Switch to Bot / Local' : 'Switch to Online Matchmaking'}</span>
             </button>
           )}
         </div>
@@ -269,20 +454,20 @@ function PlayContent() {
 
       {error && (
         <div role="alert" className="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-red-300">
-          {tr(error)}
+          {error}
         </div>
       )}
 
       {user && mode === 'online' && (
         <section className="mb-8 rounded-2xl border border-text-secondary/15 bg-background-secondary p-6 shadow-card">
-          <h2 className="text-xl font-bold text-text-primary mb-2">{tr('Online Quick Match')}</h2>
+          <h2 className="text-xl font-bold text-text-primary mb-2">Online Quick Match</h2>
           <p className="text-sm text-text-secondary mb-6">
-            {tr('Find an opponent matched by your ELO rating and time control.')}
+            Find an opponent matched by your ELO rating and time control.
           </p>
           <div className="flex flex-wrap items-end gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                {tr('Time Control')}
+                Time Control
               </label>
               <select
                 value={timeControl}
@@ -290,7 +475,7 @@ function PlayContent() {
                 disabled={matching || matchStatus === 'queued'}
                 className="block rounded-xl border border-text-secondary/25 bg-background-tertiary px-4 py-2.5 text-text-primary text-sm font-medium focus:border-accent focus:outline-none"
               >
-                {TIME_CONTROLS.map((control) => <option key={control} value={control}>{control} {tr('Blitz / Rapid')}</option>)}
+                {TIME_CONTROLS.map((control) => <option key={control} value={control}>{control} Blitz / Rapid</option>)}
               </select>
             </div>
             {matchStatus === 'idle' ? (
@@ -299,17 +484,17 @@ function PlayContent() {
                 disabled={matching}
                 className="rounded-xl bg-accent hover:bg-accent-hover px-6 py-2.5 font-bold text-white shadow-lg shadow-accent/25 transition-colors disabled:opacity-50"
               >
-                {matching ? tr('Connecting…') : tr('Find Opponent')}
+                {matching ? 'Connecting…' : 'Find Opponent'}
               </button>
             ) : (
               <div className="flex items-center gap-3">
-                <p role="status" className="text-sm font-semibold text-accent animate-pulse">{tr('Searching for opponent…')}</p>
+                <p role="status" className="text-sm font-semibold text-accent animate-pulse">Searching for opponent…</p>
                 <button
                   onClick={() => void handleLeaveMatch()}
                   disabled={matching}
                   className="rounded-xl border border-text-secondary/20 px-4 py-2.5 text-text-primary hover:bg-background-tertiary transition-colors disabled:opacity-50 text-sm font-semibold"
                 >
-                  {tr('Cancel Search')}
+                  Cancel Search
                 </button>
               </div>
             )}
@@ -326,20 +511,24 @@ function PlayContent() {
               </div>
               <div>
                 <h3 className="font-bold text-text-primary">
-                  {localOpponent === 'bot' ? `${botName} (~${botElo} ELO)` : tr('Hotseat Two Player')}
+                  {localOpponent === 'bot' ? `${botName} (${botElo} ELO)` : 'Hotseat Two Player'}
                 </h3>
                 <p className="text-xs text-text-secondary">
                   {localOpponent === 'bot'
-                    ? `${tr('Playing as')} ${tr(humanColor === 'w' ? 'White' : 'Black')}`
-                    : tr('Alternate moves on this device')}
+                    ? `${humanColor === 'w' ? t('white') : t('black')} · ${t(FORMAT_KEYS[format])} · ${timeControl}`
+                    : 'Alternate moves on this device'}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
               {botThinking && (
-                <span className="text-xs px-3 py-1.5 rounded-lg bg-accent/20 text-accent font-semibold animate-pulse">
-                  {botName} {tr('is thinking…')}
+                <span role="status" className="max-w-64 rounded-lg bg-accent/20 px-3 py-1.5 text-xs font-semibold text-accent">
+                  {engineProgress?.phase === 'download'
+                    ? `${t('botEngineDownloading')} ${engineProgress.totalBytes
+                      ? `${Math.floor((engineProgress.loadedBytes / engineProgress.totalBytes) * 100)}%`
+                      : `${(engineProgress.loadedBytes / 1024 / 1024).toFixed(1)} MB`}`
+                    : engineLoaded ? t('computerThinking') : t('botEngineStarting')}
                 </span>
               )}
               <button
@@ -347,7 +536,7 @@ function PlayContent() {
                 className="px-4 py-2 bg-background-tertiary hover:bg-background text-text-primary text-xs font-semibold rounded-xl border border-text-secondary/20 transition-colors flex items-center gap-1.5"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-accent" />
-                <span>{tr('Restart Game')}</span>
+                <span>Restart Game</span>
               </button>
             </div>
           </div>
@@ -359,14 +548,52 @@ function PlayContent() {
             isWhitePlayer={humanColor === 'w'}
             isHotSeat={localOpponent === 'hotseat'}
             undoPlies={localOpponent === 'bot' && gameEngine.moveHistory.length > 1 ? 2 : 1}
-            allowUndo={!botThinking}
-            isInputEnabled={!botThinking && (localOpponent === 'hotseat' || gameEngine.turn === humanColor)}
+            allowUndo={localOpponent === 'hotseat' && !botThinking}
+            isInputEnabled={!botThinking && !finishedGame && !timeoutWinner && (localOpponent === 'hotseat' || gameEngine.turn === humanColor)}
             whiteName={humanColor === 'w' ? (user?.email || 'Player') : botName}
             blackName={humanColor === 'b' ? (user?.email || 'Player') : botName}
             whiteRating={humanColor === 'w' ? 200 : botElo}
             blackRating={humanColor === 'b' ? 200 : botElo}
             initialOrientation={humanColor === 'w' ? 'white' : 'black'}
+            whiteTime={localOpponent === 'bot' ? Math.ceil(clocks.w) : undefined}
+            blackTime={localOpponent === 'bot' ? Math.ceil(clocks.b) : undefined}
           />
+          {finishedGame && (
+            <section className="mt-6 rounded-2xl border border-accent/30 bg-background-secondary p-6 shadow-card">
+              <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-accent">{t('botResult')}</p>
+                  <h2 className="mt-1 text-3xl font-black">
+                    {finishedGame.result === 'win' ? t('botVictory') : finishedGame.result === 'loss' ? t('botDefeat') : t('botDraw')}
+                  </h2>
+                  <p className="mt-2 text-sm text-text-secondary">
+                    {t('botOpponent')}: {botName} ({botElo} ELO) · {t(FORMAT_KEYS[format])} · {timeControl}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => startLocalGame('bot', humanColor, botDifficulty)}
+                    className="rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-white hover:bg-accent-hover"
+                  >
+                    {t('botRematch')}
+                  </button>
+                  <Link
+                    href={`/play/bots/history?game=${encodeURIComponent(finishedGame.id)}`}
+                    className="rounded-xl border border-text-secondary/20 px-4 py-2.5 text-sm font-semibold hover:border-accent/50 hover:text-accent"
+                  >
+                    {t('botAnalyzeGame')}
+                  </Link>
+                  <Link
+                    href="/play/bots"
+                    className="rounded-xl border border-text-secondary/20 px-4 py-2.5 text-sm font-semibold hover:border-accent/50 hover:text-accent"
+                  >
+                    {t('botChangeOpponent')}
+                  </Link>
+                </div>
+              </div>
+            </section>
+          )}
         </div>
       )}
 
@@ -380,10 +607,8 @@ function PlayContent() {
 }
 
 export default function PlayPage() {
-  const { tr } = useI18n();
-
   return (
-    <Suspense fallback={<div className="p-8 text-center text-text-secondary">{tr('Loading play arena…')}</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-text-secondary">Loading play arena…</div>}>
       <PlayContent />
     </Suspense>
   );
